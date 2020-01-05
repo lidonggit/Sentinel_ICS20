@@ -1,0 +1,76 @@
+\section{Related Work}
+\textbf{Heterogeneous Main Memory.}
+%\textcolor{red}{review the existing heterogeneous memory (see the Nimble paper)}
+%In today's data centers, vendors use hybrid memory systems rather than single-tier DRAM-based memory systems~\cite{}. 
+Many memory technologies~\cite{6509675,3DXPoint_intel,Optane:intelweb,ieeemicro10:lee} have been proposed to build HM. Intel Optane DC persistent memory plus traditional DDR is an example~\cite{8641463,optane:ucsd}; High bandwidth memory (HBM) plus DDR in Intel Knights Landing is another example~\cite{6509675}. Recent research studies data management on HM using hardware-based approaches~\cite{asplos15:agarwal,hetero_mem_arch,qureshi_micro09, ibm_isca09,gpu_pcm_pact13,hpdc16:wu,row_buffer_pcm_iccd12, Ramos:ics11} or OS/software-based approaches~\cite{eurosys16:dulloor,nas16:giardino,asplos16:lin,Narayan:IPDPS2018,Peng:ISMM17,ismm16:shen,sc18:wu,wen:ICS18,unimem:sc17,Yan:ASPLOS19,Yu:ics17}. The common goal of these studies is to achieve a high service rate by leveraging fast memory as much as possible. We discuss software-based solutions as follows.
+%from fast memory for optimal performance.
+
+%%%%%%%%%%%%%%%%%new related work%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\textcolor{dong}{
+\textbf{Using Managed Runtime for Data Management. }%}
+Existing efforts~\cite{pldi19:panthera, pldi18:KG,ASPLOS18:Espresso,sigmetrics19:crystalgazer} leverage managed runtime such as JVM for data management on HM. There are four major differences between these efforts and \name. (1) The existing efforts couple data migration with garbage collection, and hence miss opportunities to minimize data migration overhead; (2) The existing efforts do not proactively migrate data objects to save fast memory space; (3) The existing efforts leave less frequently accessed data objects in slow memory, instead of trying best efforts to migrate data objects to fast memory for best performance as in \name, hence causing performance loss; (4) Leveraging managed runtime to profile memory accesses as in~\cite{pldi19:panthera, pldi18:KG} can be costly.
+
+\begin{comment}
+\textcolor{jie}{\textbf{Data Management for Managed Runtime.}
+Existing efforts~\cite{pldi19:panthera, pldi18:KG,ASPLOS18:Espresso,sigmetrics19:crystalgazer} that leverage managed runtime such as JVM for data management on HM. 
+%%%Espresso~\cite{ASPLOS18:Espresso} focuses on enabling persistent heaps with JVM-based runtime on HM and does not migrate data between NVM and DRAM.
+Write Rationing~\cite{pldi18:KG} and Crystal Gazer~\cite{sigmetrics19:crystalgazer} aims to prolong NVM lifetime by placing frequently written objects in DRAM and read-mostly objects in NVM. Write Rationing needs continuously monitor object write behavior and incurs non-negligible execution time overhead. Crystal Gazer uses offline profiling to reduce the runtime overhead. Different from those works, \name profiles data objects access for both read and write operation online with negligible overhead.
+The recent work Panthera~\cite{pldi19:panthera} close \name, which optimizes data layout in HM for Big Data workload for better performance on HM. Panthera uses static analysis plus dynamic monitoring for data migration decisions, which is reactive. Instead, \name leverage migration interval to proactively migrate data into DRAM before data access happens.}
+
+\textcolor{jie}{
+There are several major differences between \name and managed runtime data management.
+First, \name focuses on the DNN model training workload. Current DNN model training frameworks are not using managed runtime. 
+Second, the existing works on data management based on JVM migrate data objects during the GC process, while Sentinel triggers data objects migration according to the DNN model structure, which makes migration more flexible. Third, the GC process will "stop-the-world" while \name migrates data objects asynchronously, which does not incur large runtime overhead.
+}
+\end{comment}
+
+
+
+
+\textbf{Page-based Runtime Data Management.}
+Existing proposals~\cite{Thermostat:asplos17,RAMinate:socc16,heteros:isca17,unimem:sc17,sc18:wu,Yan:ASPLOS19} explore various page placement polices. They commonly profile memory access to determine page placement. Some work~\cite{Thermostat:asplos17,RAMinate:socc16,heteros:isca17} tracks page accesses by setting and resetting PTE as \name does, but this tracking mechanism can result in very high runtime overhead. To reduce runtime overhead, the existing work commonly limits the amount of pages to profile, which can compromise profiling accuracy. Unlike the above work, \name leverages DNN domain knowledge, and hence only profiles a small portion of total execution (one training step) without paying large runtime overhead and losing accuracy. Also, \name associates page-level profiling results with data objects, making profiling results more meaningful for data migration.
+
+
+%\textcolor{dong}{
+Yan et al.~\cite{Yan:ASPLOS19} guides page placement based on an existing Linux page replacement policy. However, using this design to decide page migration for common short-lived data objects in DNN can be slow and lacks a global view, which wastes valuable fast memory space and causes unnecessary data movement. The existing efforts~\cite{Yan:ASPLOS19, 7446088, Seshadri:2013:RFE:2540708.2540725} also focuses on the page migration mechanism. \name focuses on page migration policy (not mechanism), but these efforts are useful to improve performance of \name.%}
+
+
+\begin{comment}
+\textcolor{jie}{
+Yan et al.~\cite{Yan:ASPLOS19} guides page placement based on an existing Linux page replacement mechanism. Like Linux, this work uses two FIFO queues (active list and inactive list) to make page migration decisions. However, using this design to decide page migration for common short-lived data objects in DNN can be slow and lacks a global view, which wastes valuable fast memory space and causes unnecessary data movement.}
+
+\textcolor{jie}{
+\textcolor{green}{(Can remove page migration mechanism to save space.)}
+In terms of page migration mechanism, Yan et al.~\cite{Yan:ASPLOS19} uses multi-threaded migration for single pages and concurrent migration for multiple pages. Wang et al.~\cite{7446088} and Seshadri et al.~\cite{Seshadri:2013:RFE:2540708.2540725} enable fast page migration by enhancing DRAM architecture. \name focuses on page migration policy (not mechanism), but the existing efforts are useful to improve performance of \name.}
+\end{comment}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%reduce old related work
+\begin{comment}
+\textbf{Page Placement Policies and Mechanisms.}
+Existing proposals~\cite{Thermostat:asplos17,RAMinate:socc16,heteros:isca17,unimem:sc17,sc18:wu,Yan:ASPLOS19} explore various page placement polices. They commonly profile memory access to determine page placement. Some work~\cite{Thermostat:asplos17,RAMinate:socc16,heteros:isca17} tracks hot pages by setting and resetting PTE as \name does, but this tracking mechanism can result in very high runtime overhead. To reduce runtime overhead, the existing work commonly limits the amount of pages to profile, which can compromise profiling accuracy. For example, Thermostat~\cite{Thermostat:asplos17} only profiles 0.5\% of total memory pages; If each page is profiled, there could be 4x slowdown. Unimem~\cite{unimem:sc17} and Tahoe~\cite{sc18:wu} use a hardware counter-based approach to periodically count main memory accesses. This method, although being lightweight, can incorrectly count the number of memory accesses for short-lived data objects because of the sampling nature. Unlike the above work, \name leverages domain knowledge, and hence only profiles a small portion of total execution (one training step) without paying large runtime overhead and losing accuracy. Also, \name associates page-level profiling results with data objects, making profiling results more meaningful for data migration. 
+
+%Existing proposals~\cite{Thermostat:asplos17,RAMinate:socc16,heteros:isca17,unimem:sc17,sc18:wu,Yan:ASPLOS19} explore page placement polices to make the best use of a hybrid main memory. These works profile memory access to determine the page placement. Some works~\cite{Thermostat:asplos17,RAMinate:socc16,heteros:isca17} track hot pages by setting and resetting page tables as Sentinel does, but this tracking mechanism can result in very high runtime overhead. To reduce runtime overhead, they must carefully limit the amount of data to profile, which can compromise the accuracy of the profiling. For example, Thermostat~\cite{Thermostat:asplos17} only profiles 0.5\% of the total memory page; otherwise, if each memory page is profiled, 4x runtime overhead is introduced. Unlike the above proposal, \name only profiles one training step due to the repetitive nature of memory access patterns in DNN training. This configuration minimizes the impact of performance profiling on performance. Moreover, the above proposals do not consider application semantics. Given the memory access patterns typically associated with data objects, the lack of application semantics can reduce data placement efficiency and lose the opportunity to improve performance. Leverage customized memory allocation, \name associate page-level profiling result to data objects and determine data migration on data-object level.
+
+Yan et al.~\cite{Yan:ASPLOS19} guides page placement based on an existing Linux page replacement mechanism. Like Linux, this work uses two FIFO queues (active list and inactive list) to make page migration decisions. However, using this design to decide page migration for common short-lived data objects in DNN can be slow and lacks a global view, which wastes valuable fast memory space and causes unnecessary data movement.
+
+%Nimble~\cite{Yan:ASPLOS19} guides page placement based on an existing Linux page replacement mechanism. Like Linux, this work uses two FIFO queues (active list and inactive list) to implemen . Such a design does not work well in DNN training. According to our analysis, there are a large number of short-term objects throughout the training process, but these short-term data objects often have a negligible impact on the performance of DNN training. Tracking and migrating short-term data objects can result in unnecessary costs. Some methods~\cite{sc18:wu,unimem:sc17} also use a hardware counter-based sampling approach to profile memory pages, which may miss the memory accesses of small data objects and result in incorrect page placement decisions.
+
+In terms of page migration mechanism, Yan et al.~\cite{Yan:ASPLOS19} uses multi-threaded migration for single pages and concurrent migration for multiple pages. Bock et al.~\cite{Bock:2014:CPM:2597917.2597924} allow application to execute without waiting for the completion of page migration, by buffering application writes to migrated pages in a hardware buffer. Wang et al.~\cite{7446088} and Seshadri et al.~\cite{Seshadri:2013:RFE:2540708.2540725} enable fast page migration by enhancing DRAM architecture. \name focuses on page migration policy (not mechanism), but the existing efforts are useful to improve performance of \name.
+
+%In terms of page migration mechanism, Nimble~\cite{Yan:ASPLOS19} improves page migration through multi-threaded migration of single pages and concurrent migration of multiple pages. Bock et al.~\cite{Bock:2014:CPM:2597917.2597924} proposes a solution to keep data in the cache to avoid access locks during the page migration. Re-architecting DRAM to limit page migration occurs only in the memory controller without moving data on the chip~\cite{Ryoo:2018:CGA:3205289.3208064,7446088}. Our migration optimization is different from them. We explore a test-and-trial algorithm to adaptively determine the migration interval for optimal performance.
+\end{comment}
+%%%%%%%%%%%%%%%%%%%%
+
+
+\textbf{Performance Optimization for Dataflow-based Machine Learning Frameworks.}
+Performance optimization for such frameworks attracted a lot of research efforts recently~\cite{222575,pmlr-v80-gao18a,222629,liu:micro18,ipdps19_liu,234946,google:device_placement,google:device_placement_re,222605,DBLP:conf/asplos/SivathanuCSZ19,DBLP:journals/corr/abs-1802-04730,Wang:2018:SDG:3178487.3178491,222611}. 
+Some of them~\cite{7472805,Jin:2018:LMR:3274266.3243904,liu:micro18, ipdps19_liu, DBLP:conf/asplos/SivathanuCSZ19,222611} leverage the predictability of DNN workloads to guide operation scheduling and compiler-based performance optimization. Our work also leverages the unique characteristics of DNN, but focuses on data management on HM. 
+
+%Performance optimization for such frameworks attracted a lot of research efforts recently\cite{pmlr-v80-gao18a,liu:micro18,DBLP:journals/corr/abs-1810-08955,google:device_placement,google:device_placement_re, DBLP:conf/asplos/SivathanuCSZ19} studies the performance optimization of a dataflow-based framework. Liu et al.~\cite{liu:micro18} proposes a software/hardware co-design for heterogeneous processing-in-memory systems, which schedules NN training operations on various heterogeneous hardware resources to optimize system energy efficiency. Mirhoseini et al.~\cite{google:device_placement,google:device_placement_re} clusters operations into groups and schedule each group of operations onto different devices. Liu et al.~\cite{DBLP:journals/corr/abs-1810-08955} explores concurrency control that co-runs operations of NN training on many-core platforms to improve hardware utilization.
+
+%Our work is different from the existing efforts on optimizing dataflow-based framework. The existing work studies operation scheduling, while we study data placement on hybrid memory systems to optimize performance.

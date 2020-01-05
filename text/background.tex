@@ -1,0 +1,82 @@
+\section{Background}
+\label{sec:bg}
+
+We provide a brief background on the training process of DNN models and HM. 
+%and the current state of using heterogeneous main memory systems.
+
+\subsection{Training DNN Models}
+\label{sec:bg_training}
+%\textcolor{red}{introduce the basic concepts of model training, such as layers and training accuracy; See the astra paper (ASPLOS paper)}
+%\textcolor{red}{introduce the task dataflow model (execution model)}
+%\textcolor{red}{discuss that the DL models are highly predictable. See the astra paper.}
+%\textcolor{red}{discuss that the CPU-based training makes sense.}
+
+A typical DNN model comprises of a stack of \textit{layers} each of which is a group of neurons. Each neuron in a layer computes a non-linear function of the outputs of neurons in the preceding layer, using a set of weights. Training DNN often involves a large number of iterative training steps. In each step, a \textit{batch} of training samples are fed into DNN. Performance of each step (e.g., execution time and memory access pattern) remains stable across steps~\cite{liu:micro18,ipdps19_liu,DBLP:conf/asplos/SivathanuCSZ19}. %The above characteristics allow us to use dynamic profiling of the first few training steps to improve performance of the following steps. 
+Training DNN often uses a machine learning framework, such as TensorFlow~\cite{tensorflow2015-whitepaper} and  PyTorch~\cite{pytorch}. %and MXNet~\cite{mxnet}.
+These frameworks use a dataflow execution model where the whole workload of DNN is modeled as a directed graph. 
+%composed of a set of nodes.  
+\textit{Operations}, such as 2D convolution, matrix multiplication, and array concatenation, are implemented by the frameworks as primitives. Those operations are represented as nodes in the dataflow graph. Within the graph, edges between nodes capture dependencies between nodes. 
+
+%An operation is ready to run, as long as its dependencies (control or data dependencies) are resolved. 
+
+%HM as main memory often appears in CPU-based systems, hence our discussion on training DNN is for CPU-based machines. Although GPU is widely used for training DNN, using CPU for training takes a large portion of the use cases and is very common \textcolor{red}{[xxx]}. As a result, CPU Vendors such as Intel, AMD  and ARM introduce machine learning libraries \textcolor{red}{[xxx]} to meet the user needs. 
+\begin{comment}
+Using CPU for training has the following four benefits. 
+\textit{First}, compared with GPU, CPU is more approachable and affordable. Some data centers do not have GPU and simply use CPU for training. Such examples include the Cori in Lawrence Berkeley National Lab and \textcolor{red}{xxx} in TACC for scientific machine learning \textcolor{red}{xxx}. \textit{Second}, for those DNN models that lack thread level parallelism, GPU can perform worse than CPU. For example, training the wide-and-deep model \textcolor{red}{[xxx]} and DQN, CPU performs \textcolor{red}{[xxx]} faster than GPU (Using xxx CPU and xxx GPU for training, the training throughput is xxx and xxx respectively). \textit{Third}, on a public cloud, reserving CPU is cheaper than reserving GPU. When the training throughputs on CPU and GPU are comparable, using CPU can be easily more cost effective. \textit{Fourth}, the CPU-based machine provides a much larger memory capacity than the GPU one, allowing more use cases such as co-locating multiple DNN training workloads in a virtualization environment or automatic machine learning~\cite{}. 
+\end{comment}
+
+
+%(1) The widespread deployment of CPUs makes this hardware platform an attractive target for machine learning model training. (2) The optimizations on GPU lack of generality. (3) In terms of programmability, porting the original code to GPU kernels requires significant programming efforts; (4) GPU has strong bias towards certain application. Existing effort has been made in academic and industry to optimize machine learning training on widely available CPU based architecture. Adam~\cite{Chilimbi:2014:PAB:2685048.2685094} from Microsoft. Intel MKL-DNN\cite{intelMKL} has been proposed to accelerate machine learning training. 
+
+
+\subsection{Data Management on HM}
+%%Software-controlled HM is emerging. Examples of this system include non-volatile 3D XPoint memory alongside DRAM, high-bandwidth multi-channel DRAM alongside DDR4 in Intel Knight's Landing, distributed memory components in the disaggregated memory system. 
+The online data management on HM typically involves three fundamental steps: (1) memory profiling, (2) decision making for data migration, and (3) data migration. 
+
+The memory profiling step collects memory access information for pages or data objects; The decision making step uses performance models or caching algorithms to decide which pages to migration for best performance; The data migration step triggers data migration with the goal of reducing data migration overhead.
+
+\textbf{Recent research efforts.}
+%Given the promising of HM, data management on HM remains an active area of research. 
+The three steps create major optimization targets in the existing research efforts. We list the targets as follows. Our work shares the same optimization targets as the existing efforts.
+%\squishlist
+\begin{itemize}[leftmargin=*]
+    \item Memory profiling must have ignorable impact on application performance while being accurate;
+    \item The decision-making process must timely capture those hot data for migration without violating fast memory capacity;
+    \item The data migration cannot impact  performance. %and/or not exposed to the critical path.  
+\end{itemize}
+%\squishend
+
+%\textcolor{dong}{To complete the following paragraph, see Section 2.2 in the Nimble paper.}
+The existing efforts explore hardware techniques for profiling and facilitate data movement among memory devices~\cite{asplos15:agarwal,hetero_mem_arch,qureshi_micro09, ibm_isca09, Ramos:ics11,gpu_pcm_pact13,hpdc16:wu,row_buffer_pcm_iccd12}. Other studies on software-based techniques use sampling-based approaches for memory profiling to reduce profiling overhead~\cite{Thermostat:asplos17,RAMinate:socc16,heteros:isca17, unimem:sc17, sc18:wu}; They commonly use a caching algorithm, such as the multi-queue~\cite{RAMinate:socc16,Ramos:ics11, 5260554}, FIFO~\cite{Yan:ASPLOS19}, or LRU~\cite{heteros:isca17}. However, They often trade profiling accuracy for low overhead, and hence can lose tracking of small data objects. Also, the process of detecting hot pages may not timely trigger data migration. 
+%They also try to optimize the data migration mechanism using parallel migration, two-sided migration~\cite{Yan:ASPLOS19} or proactive migration~\cite{unimem:sc17}.  
+%In addition, the modern OS uses autoNUMA~\cite{autonuma} or the active list~\cite{Yan:ASPLOS19} for data management on HM. 
+%\textcolor{dong}{However, autoNUMA offlines pages for profiling, and cannot swap pages between fast and slow memories when there is no space in fast memory. Hence it cannot meet the need of online DNN training; The active list is slow to capture memory access patterns, and cannot effectively direct data placement for small data objects.}
+
+We study a fundamentally new method for data management on HM. %ignore application knowledge which can be used to achieve the optimization targets with less performance overhead. 
+%%Inspired by the trend of using domain specific knowledge for hardware (e.g., AI accelerators~\cite{7738524, Jouppi:2017:IPA:3079856.3080246, 8192478, Shafiee:2016:ICN:3001136.3001139} and Anton for molecular dynamics simulation~\cite{Shaw:2008:ASM:1364782.1364802}) and software (e.g., domain specific language Halide~\cite{halide} and Liszt~\cite{DeVito:2011:LDS:2063384.2063396}), 
+We use very limited DNN domain knowledge to direct data placement. This method enables lightweight profiling, accurately capturing data hotness, timely triggering data migration, and effectively hiding data migration overhead. 
+%avoids repeated profiling (hence reducing profiling overhead), accurately captures data hotness, and effectively hide the data migration overhead. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+%``To ensure optimal performance, application developers will rely on both initial page placement policies and follow-up page migration policies to ensure that hot data pages remain within the highest bandwidth or lowest latency memory node during an application’s runtime''
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{comment}
+For instance, multi-GPU systems have been explored
+when the batch and model parameters do not fit in the memory of a single GPU. The solution has been to reduce the batch size and make it fit in memory. But this changes the batch size and alters the convergence
+\end{comment}

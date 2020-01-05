@@ -1,0 +1,10 @@
+\vspace{-1pt}
+\section{Conclusions}
+\vspace{-1pt}
+Runtime data management on HM often uses an application-agnostic approach. It can suffer from high overhead for memory profiling or low accuracy, cause unnecessary data migration, and/or have difficult to hide data migration overhead. In this paper, we use a new angle to examine the data management problem. By using limited domain knowledge (i.e., workload repetitiveness, data liveness and DNN topology), we are able to break the fundamental tradeoff between profiling overhead and accuracy, and effectively prefetch data to fast memory for computation. We also reveal the conflict between OS and application when handling data migration. By resolving the conflict, we avoid unnecessary data migration. 
+%We focus on a specific and influential domain, DNN, in our study, given its importance on modern data centers. 
+Using \name, DNN training on HM with a small fast memory size can perform similar to the fast memory-only system. Also, \name consistently outperforms a state-of-the-art solution by \textcolor{check}{16\%}.
+
+%Using only 20\% of peak memory consumption of DNN models as the fast memory size, performance of Sentinel is the same or similar (at most 8\% performance difference) to that of the fast memory-only system; 
+
+%Our work shows big performance benefit (\textcolor{red}{xxx}) and reduces the size of valuable fast memory \textcolor{red}{xxx}. 

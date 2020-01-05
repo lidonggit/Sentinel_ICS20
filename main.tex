@@ -1,0 +1,155 @@
+%% For double-blind review submission, w/o CCS and ACM Reference (max submission space)
+%\documentclass[sigconf,screen]{acmart}\settopmatter{}
+%% For double-blind review submission, w/ CCS and ACM Reference
+%\documentclass[sigconf,review,anonymous]{acmart}\settopmatter{printfolios=true}
+%% For single-blind review submission, w/o CCS and ACM Reference (max submission space)
+%\documentclass[sigconf,review,anonymous]{acmart}
+\documentclass[sigconf,anonymous]{acmart}
+\settopmatter{printfolios=false,printccs=false,printacmref=false}
+%% For single-blind review submission, w/ CCS and ACM Reference
+%\documentclass[sigplan,review]{acmart}\settopmatter{printfolios=true}
+%% For final camera-ready submission, w/ required CCS and ACM Reference
+%\documentclass[sigplan]{acmart}\settopmatter{}
+
+%\setcounter{page}{94}
+
+%% Conference information
+%% Supplied to authors by publisher for camera-ready submission;
+%% use defaults for review submission.
+%\acmConference[ICS '19]{2019 International Conference on Supercomputing}{June 26--28, 2019}{Phoenix, AZ, USA}
+%\acmBooktitle{2019 International Conference on Supercomputing (ICS '19), June 26--28, 2019, Phoenix, AZ, USA}
+%\acmPrice{15.00}
+%\acmDOI{10.1145/3330345.3330354}
+%\acmISBN{978-1-4503-6079-1/19/06}
+\startPage{1}
+
+%% Bibliography style
+\bibliographystyle{ACM-Reference-Format}
+
+%% Some recommended packages.
+\usepackage{booktabs}   %% For formal tables:
+%% http://ctan.org/pkg/booktabs
+\usepackage{subcaption} %% For complex figures with subfigures/subcaptions
+%% http://ctan.org/pkg/subcaption
+
+
+% to be able to draw some self-contained figs
+\usepackage{tikz}
+\usepackage{amsmath}
+
+% inlined bib file
+\usepackage{filecontents}
+%\settopmatter{printacmref=false}
+%\setcopyright{none}
+%\renewcommand\footnotetextcopyrightpermission[1]{}
+\usepackage{setspace}
+\usepackage{setspace}
+\usepackage{booktabs} % For formal tables
+\usepackage{soul,xcolor}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{lipsum}
+\usepackage{comment}
+\usepackage[title]{appendix}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{xspace}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{pdfpages}
+\usepackage{setspace}
+\usepackage{subfiles}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{subcaption}
+%\usepackage[utf8x]{inputenc}
+\captionsetup{compatibility=false}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{url}
+\newcommand{\squishend}{
+    \end{list}  }
+
+\definecolor{dong}{RGB}{0,0,255}  
+\definecolor{dong2}{RGB}{0,0,0}
+\definecolor{jie}{rgb}{0.0, 0.5, 0.0}
+\definecolor{check}{RGB}{0,0,0}
+%-------------------------------------------------------------------------------
+\newcommand{\name}{Sentinel\xspace}
+%-------------------------------------------------------------------------------
+
+\setlist{nolistsep}
+
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\pagestyle{plain}
+
+
+
+%-------------------------------------------------------------------------------
+\begin{document}
+%-------------------------------------------------------------------------------
+
+%don't want date printed
+\date{}
+
+% make title bold and 14 pt font (Latex default is non-bold, 16 pt)
+\title{\name: Runtime Data Management on Heterogeneous Main Memory Systems for Deep Learning}
+
+
+%-------------------------------------------------------------------------------
+\begin{abstract}
+%-------------------------------------------------------------------------------
+
+%\textcolor{dong}{
+Lack of memory causes a range of functional and performance issues for training DNN. Heterogeneous memory (HM) provides a promising solution to increase memory capacity, but imposes challenges on data management (including memory allocation and migration). Training DNN is featured with a large amount of data objects and operations with diverse memory accesses patterns. Accurately profiling memory accesses and timely migrating data objects between heterogeneous memory components for best performance is challenging. We present \name, a runtime system that automatically optimizes data management on HM to achieve performance similar to that on the fast memory-only system but with a much smaller capacity of fast memory. \name leverages DNN workload repeatability to break the dilemma between profiling accuracy and overhead; By coordinating operating system (OS) and runtime-level profiling, \name bridges the semantic gap between OS and applications, and hence enables accurate profiling. By associating data objects with DNN topology, \name avoids unnecessary data movement and proactively triggers data movement. Using only \textcolor{check}{25\% of peak memory consumption of DNN models as fast memory size, \name achieves the same or comparable performance (at most 7\% performance difference) to the fast memory-only system on common DNN models; \name also consistently outperforms a state-of-the-art solution by 16\%.} 
+
+%Software-managed heterogeneous memory (HM) provides a promising solution to increase memory capacity and cost efficiency. However, to release the performance potential of HM, we face a problem of data management. Given an application with various execution phases and each with possibly distinct working sets, we must move data between memory components of HM to optimize performance.  The deep neural network (DNN), as a common workload on data centers, imposes great challenges on data management on HM. This workload often employs a task dataflow execution model,  and is featured with a large amount of small data objects and fine-grained operations (tasks). This execution model imposes challenges on memory profiling and efficient data migration.
+
+%because of the concerns on profiling accuracy and overhead; it also imposes challenges on data migration because of the concerns on page sharing between data objects with different access patterns. 
+
+%We present \name, a runtime system that automatically optimizes data migration (i.e., data management) on HM to achieve performance similar to that on the fast memory-only system with a much smaller capacity of fast memory. To achieve this, \name exploits domain knowledge about deep learning to adopt a custom approach for data management. \name leverages workload repeatability to break the dilemma between profiling accuracy and overhead; It enables profiling and data migration at the granularity of data objects (not pages), by controlling memory allocation. This method bridges the semantic gap between operating system and applications. By associating data objects with the DNN topology, \name avoids unnecessary data movement and proactively triggers data movement. Using only 20\% of peak memory consumption of DNN models as fast memory size, \name achieves the same or comparable performance (at most 8\% performance difference) to that of the fast memory-only system on common DNN models; \name also consistently outperforms a state-of-the-art solution by 18\%. 
+
+\end{abstract}
+
+\maketitle
+
+
+
+%-------------------------------------------------------------------------------
+
+\input text/intro
+\input text/background
+\input text/motivation
+\input text/characterization
+\input text/design
+\input text/impl
+\input text/evaluation
+\input text/related_work
+\input text/conclusion
+
+%-------------------------------------------------------------------------------
+
+
+
+%-------------------------------------------------------------------------------
+%\section*{Acknowledgments}
+%-------------------------------------------------------------------------------
+
+%The USENIX latex style is old and very tired, which is why there's no \textbackslash{}acks command for you to use when acknowledging. Sorry.
+
+%-------------------------------------------------------------------------------
+
+
+%-------------------------------------------------------------------------------
+\clearpage
+\bibliographystyle{plain}
+\bibliography{kai.bib,li.bib,jie.bib}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%t%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%  LocalWords:  endnotes includegraphics fread ptr nobj noindent
+%%  LocalWords:  pdflatex acks

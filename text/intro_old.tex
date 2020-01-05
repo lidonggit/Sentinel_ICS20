@@ -1,0 +1,92 @@
+\section{Introduction}
+
+%Emergence of heterogeneous memory
+%Hardware heterogeneity, as a practical solution to enable scalable performance and high power efficiency, has been commonly employed by modern computing systems. 
+Heterogeneous memory (HM) is an emerging memory architecture, complementary to the existing heterogeneity in processing units (e.g., GPU and FPGA). Within HM, multiple memory components with different technologies are combined to construct main memory within and cross compute nodes. HM brings a promising solution to increase memory capacity, avoid limitation of existing memory technologies, and increase energy efficiency. With the emerging technologies such as non-volatile memory (NVM) and high-bandwidth memory (HBM)~\cite{hbm}, HM is expected to be more common.
+
+
+%The definition for data management
+A typical HM system consists of multiple types of memory components with varying properties (e.g., bandwidth, latency, and capacity). As a result, HM raises a problem of data management and migration. Given an application with various execution phases and each with possibly distinct working sets, we must move data between memory components to optimize performance. Ideally, hot memory pages that are accessed by the running execution phase should be placed in the fastest memory component with the best latency or bandwidth, while other memory pages are filled into other memory components. 
+
+%``The critical operating system support needed to enable the vision of efficiently moving data as programs navigate different phases of execution, each with potentially distinct working sets, is efficient page management and migration. Regardless of configuration, to optimize for performance, ideally the hottest pages will be placed in the fastest memory node (in terms of latency or bandwidth) until that node is full, the next-hottest pages will be filled into the second-fastest node up to its capacity, and so on. Then as programs execute, these pages must be constantly re-organized based on their hotness to retain maximum workload performance.'' 
+
+The data management problem is more complicated, when we consider memory size. In a public cloud, the user is charged not only in terms of processors, but also in terms of memory size. Fast memory in HM tends to be more expensive (e.g., \textcolor{dong}{in the google cloud, regular DDR is 24x more expensive than fast SSD}). The cost of using fast memory is accumulated throughout application execution, making the cloud service less affordable for time-consuming applications. Also, the total cost of ownership (TCO) for fast memory increases quickly (e.g., the average price of DRAM DDR4 (a common fast memory) increased by 2.3x between 2016 and early 2019~\cite{ram_price, ram_price2}), which motivates the data center to reduce the usage of fast memory as much as possible~\cite{Eisenman:2018:RDF:3190508.3190524}. In general, reducing fast memory size without performance loss becomes a critical optimization target to reduce operation cost~\cite{DBLP:journals/corr/abs-1901-10938, Eisenman:2018:RDF:3190508.3190524}.  
+
+%DNN is important
+Our work focuses on data management on HM for training the deep neural network (DNN). DNN is a common workload on data centers. %However, training DNN can be resource-demanding and time-consuming. 
+Given the success of DNN in many applications and growing trend of training high-quality models specific to individual businesses through automated machine learning, training DNN efficiently is increasingly important to reduce business cost and improve utilization of data centers. 
+
+
+Since modern HM typically serves CPU, we study CPU with HM for DNN training. Using CPU for training is commonly supported by hardware vendor (e.g., Intel MKL-DNN~\cite{intelMKL} and ARM Compute Library~\cite{arm_cl}), and has the following four benefits. 
+\textit{First}, the trend of democratizing DNN~\cite{democratization_ai} makes CPU an appealing solution. compared with GPU, CPU is more approachable and affordable, especially for personal users or small-sized enterprises. \textit{Second}, some data centers do not have GPU and simply use CPU for training. Such examples include the Cori~\cite{lbnl_cori} at Lawrence Berkeley National Lab and Stampede2~\cite{tacc_stampede} at TACC for scientific machine learning~\cite{ 8658402, Kurth:2018:EDL:3291656.3291724, Mathuriya:2018:CUD:3291656.3291743,  tacc_ml_CPU_training}. \textit{Third}, for those DNN models that lack thread level parallelism, GPU can perform worse than CPU. For example, training some CNN (e.g., the wide-and-deep model~\cite{DBLP:journals/corr/ChengKHSCAACCIA16}) and some deep reinforcement learning models (e.g., DQN~\cite{Hasselt:2016:DRL:3016100.3016191}), CPU performs faster than GPU. In our evaluation, using 8-core Intel i7-7700K CPU and NVIDIA Titan XP GPU to train the wide-and-deep model, the training throughput on CPU is 4x of on GPU (763 and 196 global steps per second for CPU and GPU respectively). \textit{Fourth}, on a public cloud, CPU is cheaper than GPU. For example, on the google cloud, one vCPU %core of the default Intel Xeon E5 (v4) CPU 
+is only 1/46 and 1/78 of NIVIDA P100 and V100 GPU, in terms of cost per hour. When the training throughputs on CPU and GPU are comparable, using CPU can be easily more cost effective. 
+%\textit{Fourth}, the CPU-based machine provides a much larger memory capacity than the GPU one, allowing more use cases such as co-locating multiple DNN training workloads in a virtualization environment or automatic machine learning~\cite{google_auto_ml, DBLP:journals/corr/BailisORZ17, aws_auto_ml}.  
+
+
+%challenges.
+The workload characterization of training DNN imposes unique challenges on data management on HM. \textit{First}, training DNN is typically featured with a large amount of data objects smaller than a memory page (4KB). Profiling memory accesses to those data objects to make the decision of data placement on HM is challenging, because those small data objects can share memory pages, creating difficulty to track memory accesses for individual data objects. 
+
+\textit{Second}, training DNN often employs a task dataflow execution model, where the whole computation is decomposed into a large amount (thousands or even millions) of operations in a single training step. Those operations (e.g., matrix multiplication and 2D convolution) represent various execution phases with diverse memory accesses patterns. Many of those operations can run in parallel and take short execution time. Placing data objects on HM for those operations has high requirements on the promptness of making the data placement decision and data migration, in order to make best use of fast memory and enable high performance. 
+
+\textit{Third}, the semantic gap between operating system (OS) and application (DNN in our case) can make data migration less efficient. From the OS point of view, the memory page is the primitive granularity for memory profiling and data migration. However, from the application point of view, the data object (or the tensor in the language of DNN) is the primitive granularity for operations to access and compute. Ideally, we want to migrate data at the granularity of data objects to enable high performance of operations. However, this is conflicting with the abstract (i.e., the memory page) OS uses to manage data. 
+
+%The existing solutions cannot work. 
+Unfortunately, the existing data management methods cannot address the above challenges well. Many methods~\cite{Thermostat:asplos17,RAMinate:socc16,heteros:isca17,sc18:wu,unimem:sc17} use a sampling-based approach to profile memory pages to \textcolor{dong2}{avoid expensive profiling overhead}, which can miss memory accesses for small data objects and lead to incorrect data migration decision; Furthermore, the application semantics is often missed, leaving many opportunities to improve performance on the table. 
+
+
+In this paper, we present \textit{\name}, a runtime system that automatically optimizes data migration (i.e., data management) on HM to achieve performance similar to that on the fast memory-only system with a smaller size of fast memory. To achieve this, \name exploits domain knowledge about deep learning to adopt a custom approach for data management. %exploits the unique characteristics of the DNN workload. 
+
+
+% A brief overview of our solution;
+\name leverages the fact that a DNN training workload has high repeatability and hence highly predictable. Such a workload comprises of millions of training steps, each of which goes through the exactly same computation graph and operations. As a result, \name uses a few training steps for profile measurements. In addition, \name enables profiling and data migration at the granularity of data objects (not pages), by controlling memory allocation. This method bridges the semantic gap between OS and application. More importantly, it allows the runtime system to employ the limited domain information for runtime data management: By associating data objects with the DNN network topology, \name avoids unnecessary data movement and proactively triggers data movement. 
+
+
+%``a DNN training job is a unique workload from a system perspective. Each job comprises of millions of mini-batches, where each mini-batch looks at a small number of training inputs. Because each mini-batch typically goes through exactly the same computation graph, mini-batches are identical to each other from a resource-usage and performance viewpoint.''
+
+%\textbf{``Third, we use the initial profile measurements during the online exploration as signals to prune the dynamic state space in an intelligent manner.''}
+
+Data migration faces a fundamental tradeoff between migration frequency and performance benefit. To save the capacity of fast memory, we want to frequently move data between fast and slow memory, such that we can timely move unused data out of fast memory and move to-be-used data into it. However, frequent data movement can be exposed to the critical path and cause performance loss. Hence, choosing an appropriate migration interval is critical to reduce memory capacity and avoid performance loss. Guided by the profiling results, \name explores the optimal migration interval for best performance.
+%and theoretically guarantees the optimal one.
+
+
+% summary of contributions
+The key contributions of our work are as follows.
+\begin{itemize}
+    \item \textbf{Performance characterization.} We use a data object-centric (instead of page-centric) approach to systematically analyze the performance of DNN, a typical task dataflow workload. We identify and leverage the unique characteristics of such a workload to direct data management at runtime on HM. 
+    
+    %\textbf{Profiling method and results}, ``We explore a simple end-to-end heterogeneous memory profiling and placement policy. Unlike existing implementations and other recent proposals, our system does not swap data out to disk, nor does it make portions of memory unavailable to profile accesses to them via page faults. Instead, it simply repurposes the existing OS active/inactive page lists. Therefore, our approach imposes no profiling overhead on systems which may not need its functionality''. 
+    
+    %``We identify and leverage the unique characteristics of the deep learning workload to do extreme tailoring or custom-wiring of the infrastructure for a specific job, resulting in significant efficiency gains;''
+
+
+\item \textbf{Runtime system.} We propose and evaluate a runtime system for optimizing data placement and migration; We determine the optimal migration interval based on theoretical analysis, dynamic profiling, and DNN domain knowledge. %to minimize the fast memory size while completely hiding data migration cost. 
+
+%%We propose and evaluate a new architectural frameworkfor optimization of such custom workloads, with aggres-sive multi-version compilation at a whole-program level that performs parallel exploration of independent choices by using fine-grained profiling.
+
+%We developspg-CNN, an op-timization  framework  for  CNNs,  which  introduces  andintegrates  three  key  components,  i)  an  alternate  sched-ule  using  GEMM-in-Parallel,  improving  scalability,  ii)  astencil-based  code  generator,  improving  per-core  perfor-mance, and iii) a sparse code generator, exploiting sparsityand improving goodput, into a unified code generator thatproduces optimized codes for various CNN computations(Section 4).
+%\textbf{Framework. fundamental tradeoff. How to determine migration interval: migrate too often (overhead); migrate not too often (make best use of fast memory). Migration interval too short (migration cannot finish before the execution happens); migration interval too large (too many short-lived variable and no DRAM space). }
+
+\item \textbf{Evaluation.} We evaluate \name using TensorFlow. The evaluation results show that using only 20\% of peak memory consumption of DNN models as the fast memory size, Sentinel achieves the same or comparable performance (at most 8\% performance difference) to that of the fast memory-only system on common DNN models. \name also consistently outperforms a state-of-the-art solution by 18\%.
+
+%Compared with a state-of-the-art runtime data management method~\cite{Yan:ASPLOS19}, \name performs 18\% better on average.} 
+%performance  improvement  of  up  to  \textcolor{red}{xxx}  on  real-world benchmarks, compared with the state-of-the-art runtime data management method~\cite{Yan:ASPLOS19}. \name provides performance close to that of the fast-memory only system, while significantly saves the fast memory size by \textcolor{red}{xxx}, compared with xxx. 
+ 
+\end{itemize}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{comment}
+CPU for machine learning. 
+
+We focus on CPU as the training platform because of following reasons:
+(1) The widespread deployment of CPUs makes this hardware platform an attractive target for machine learning model training. 
+(2) The optimizations on GPU lack of generality. 
+(3) In terms of programmability, porting the original
+code to GPU kernels requires significant programming efforts; 
+(4) GPU has strong bias towards certain application.
+Existing effort has been made in academic and industry to optimize machine learning training on widely available CPU based architecture. Adam~\cite{Chilimbi:2014:PAB:2685048.2685094} from Microsoft. Intel MKL-DNN\cite{intelMKL} has been proposed to accelerate machine learning training. 
+
+\end{comment}
