@@ -129,7 +129,8 @@ MobileNet &  \centering{CIFAR-10}&          \centering{64} &\centering{1} &   \c
 \subsection{Results}
 \label{sec:eval_results}
 \textbf{Overall performance.}
-Figure~\ref{fig:general_perf} shows performance of \name and IAL. Performance difference between \name and the fast memory-only system is very small  (\textcolor{check}{no difference in DCGAN, 3.3\% difference on average and at most 7\% difference in other models}), while IAL has \textcolor{check}{17\% performance difference on average (up to 33\%). \name is significantly better than IAL by 16\% on average (up to 27\%)}.
+Figure~\ref{fig:general_perf} shows performance of \name and IAL. Performance difference between \name and the fast memory-only system is very small  (\textcolor{check}{no difference in DCGAN, 3.3\% difference on average and at most 7\% difference in other models}), while IAL has \textcolor{check}{17\% performance difference on average (up to 33\%). \name %is significantly better than 
+ outperforms IAL by 16\% on average (up to 27\%)}.
 
 
 \begin{figure}
@@ -281,10 +282,7 @@ performance loss without it (compared with the full-featured \name). Furthermore
 \textbf{Sensitivity study.}
 %\textcolor{red}{Figure: sensitivity study: show the effects of fast memory capacity.}
 %\textcolor{green}{5 bars groups together, 5 groups in one figure.} 
-We change fast memory size and measure performance. Figure~\ref{fig:fast_memory_sen} shows the results. In general, larger fast memory gives better performance. When the fast memory size is 60\% of peak memory consumption, all of DNN models with \name on HM do not have any performance difference from the fast memory-only system. Also, with \name, performance is not sensitive to fast memory size: There is at most 
-%8\% 
-\textcolor{check}{12\%}
-performance variance \textcolor{check}{when fast memory size is changed from 20\% to 40\% of peak memory consumption}. This is a demonstration of how \name effectively uses data movement to make best use of fast memory. 
+We change fast memory size and measure performance. Figure~\ref{fig:fast_memory_sen} shows the results. In general, larger fast memory gives better performance. When the fast memory size is 60\% of peak memory consumption, all of DNN models with \name on HM do not have any performance difference from the fast memory-only system. Also, with \name, performance is not sensitive to fast memory size: There is at most 12\% performance variance \textcolor{check}{when fast memory size is changed from 20\% to 40\% of peak memory consumption}. This is a demonstration of how \name effectively uses data movement to make best use of fast memory. 
 
 %\textcolor{red}{Figure: sensitivity study: migration interval} We change the migration interval and study how it impacts the occurrences of the three cases (see Section~\ref{sec:adaptive_dm}): Case 1: all migrations are done (labeled as ``all done''), Case 2: migrations cannot be finished because of no fast memory space (labeled as ``no space'', Case 2: migration cannot be finished because of no time (labeled as ``no time''). Figure~\ref{} shows the results. When the migration interval is large, Case \textcolor{red}{xxx} is more frequent, because \textcolor{red}{xxx}; When the migration is small, Case \textcolor{red}{xxx} is more frequent, because \textcolor{red}{xxx}. 
 
@@ -298,9 +296,7 @@ performance variance \textcolor{check}{when fast memory size is changed from 20\
 %Figure~\ref{fig:general_perf} shows that using 20\% of peak memory consumption
 %peak memory  consumption 
 %of DNN models as fast memory size, \name on HM has almost the same performance (8\% difference at most) as the fast memory-only. This brings 80\% saving in fast memory size.
-\textcolor{check}{Figure~\ref{fig:general_perf} shows that using 20\%-25\% of peak memory consumption
-%peak memory  consumption 
-of DNN models as fast memory size, \name on HM has almost the same performance (8\% difference at most) as the fast memory-only. 
+\textcolor{check}{Figure~\ref{fig:general_perf} shows that using 25\% of peak memory consumption of DNN models as fast memory size, \name on HM has almost the same performance (7\% difference at most) as the fast memory-only. 
 This brings over 75\% saving in fast memory size.} 
 Figure~\ref{fig:fast_memory_sen} shows that using 60\% of peak memory consumption as fast memory size, there is no performance loss, which comes with 40\% saving in fast memory size.
 
@@ -318,7 +314,9 @@ Figure~\ref{fig:fast_memory_sen} shows that using 60\% of peak memory consumptio
 %\textcolor{green}{two bars in one group. five groups in one figure.}
 
 To further study \name's effectiveness, we use ResNets with various topology and different peak memory consumption. We report the minimum fast memory size with which \name performs the same as the fast memory-only. %\textit{does not have performance loss} with \name, %compared to the fast memory-only cases.
-Figure~\ref{fig:mem_consumption} shows peak memory consumption and fast memory size for all ResNet variants. The figure shows that although peak memory consumption increases quickly as ResNet becomes more complicated, the fast memory size increases in a much slower rate. This demonstrates the effectiveness of using \name to save fast memory size.
+Figure~\ref{fig:mem_consumption} shows peak memory consumption and fast memory size for all ResNet variants. The figure shows that although peak memory consumption increases quickly as ResNet becomes more complicated, the fast memory size increases in a much slower rate, \textcolor{dong}{because of adaptive layer-baesd migration.}  
+%\textcolor{jie}{because \name does not require long-lived data objects reside in fast memory and most of the memory is consumed by long-lived data objects}. 
+This demonstrates the effectiveness of using \name to save fast memory size.
 
 
 \begin{comment}

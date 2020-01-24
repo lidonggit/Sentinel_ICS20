@@ -1,21 +1,28 @@
 \section{Motivation for Training DNN on CPU}
+\label{sec:motivation}
 %%%\textcolor{jie}{As the DNN model becoming lager and deeper, memory capacity in training platform becomes critical in DNN training procedure. Given the size of DNN model and the size of training batches, the minimal memory usage in training platform can be calculated. A typical modern GPU has 12 GB to 16GB DRAM. Limited memory size in GPU can be harmful to large DNN model training accuracy because the maximum batch size that can fit in memory is too small.}
 
-\textcolor{check}{Since modern HM typically serves CPU, we focus on CPU. Using CPU for training is commonly supported by hardware vendors (e.g., Intel MKL-DNN~\cite{intelMKL} and ARM Compute Library~\cite{arm_cl}), and has the following four benefits. (1) The trend of democratizing DNN~\cite{democratization_ai} makes CPU an appealing solution. Compared with GPU, CPU is more approachable and affordable, especially for personal users or small-sized enterprises; (2) Some data centers do not have GPU and simply use CPU for training~\cite{lbnl_cori, tacc_stampede, 8658402, Kurth:2018:EDL:3291656.3291724, Mathuriya:2018:CUD:3291656.3291743,  tacc_ml_CPU_training}; (3) For those DNN models that lack thread level parallelism, GPU can perform worse than CPU (e.g., \cite{DBLP:journals/corr/ChengKHSCAACCIA16, Hasselt:2016:DRL:3016100.3016191,mlsys19:chen});  
+\textcolor{check}{Since modern HM typically serves CPU, we focus on CPU. Using CPU for training is commonly supported by hardware vendors (e.g., Intel MKL-DNN~\cite{intelMKL} and ARM Compute Library~\cite{arm_cl}), and has the following four benefits. (1) The trend of democratizing DNN~\cite{democratization_ai} makes CPU an appealing solution. Compared with GPU, CPU is more approachable and affordable, especially for personal users or small-sized enterprises; (2) Some data centers do not have GPU and simply use CPU for training~\cite{lbnl_cori, tacc_stampede, 8658402, Kurth:2018:EDL:3291656.3291724, Mathuriya:2018:CUD:3291656.3291743,  tacc_ml_CPU_training}; \textcolor{dong}{(3) In the case of federated learning~\cite{konen2016federated}, where shared global models are trained from a federation of participating client devices, the client devices may not always have GPUs available}; (4) For those DNN models that lack thread level parallelism, GPU can perform worse than CPU (e.g., \cite{DBLP:journals/corr/ChengKHSCAACCIA16, Hasselt:2016:DRL:3016100.3016191,mlsys19:chen});
 %(e.g., the wide-and-deep model~\cite{DBLP:journals/corr/ChengKHSCAACCIA16} and DQN~\cite{Hasselt:2016:DRL:3016100.3016191}); 
-(4) On a public cloud, CPU is cheaper than GPU. For example, on the google cloud, one vCPU is only 1/46 and 1/78 of NIVIDA P100 and V100 GPU, in terms of cost per hour.} %When the training times on CPU and GPU are comparable, using CPU can be easily more cost effective.}
+(5) On a public cloud, CPU is cheaper than GPU. For example, on the google cloud, one vCPU is only 1/46 and 1/78 of NIVIDA P100 and V100 GPU, in terms of cost per hour.} %When the training times on CPU and GPU are comparable, using CPU can be easily more cost effective.}
 
 
 
-\textcolor{check}{Besides the above reasons, we find big benefits of training DNN on CPU with large memory capacity, compared with on GPU with smaller memory capacity. We use training BERT~\cite{devlin2018bert} as an example to show the benefits. We follow the common practice to train a pre-trained BERT on CPU or GPU. In the common practice, a general purpose BERT model is trained from scratch using large-scale computing resources; Then the user trains the pre-trained BERT model with a user-specific dataset. We focus on the user training process, because it happens much more frequently than pre-training.}
+\textcolor{check}{Besides the above reasons, we find big benefits of training DNN on CPU with large memory capacity, compared with on GPU with smaller memory capacity. We use training BERT~\cite{devlin2018bert}
+\textcolor{dong2}{, the state-of-the-art transfer learning model which has achieved SOTA results on various NLP tasks,} as an example to show the benefits. We follow the common practice to %train 
+\textcolor{jie}{fine-tune} a pre-trained BERT on CPU or GPU. In the common practice, a general purpose BERT model is trained from scratch using large-scale computing resources\textcolor{dong}{, often taking hundreds of GPU hours but only happening once}; Then the user %trains 
+\textcolor{jie}{fine-tunes} the pre-trained BERT model with a user-specific dataset. We focus on the user \textcolor{jie}{fine-tuning} %training 
+process, because it happens much more frequently than pre-training.}
 
 %\textcolor{jie}{We study the fine-tuning procedure for BERT~\cite{devlin2018bert}, the state-of-the-art Natural Language Processing (NLP) model. BERT model training, including pre-training and fine-tuning. Pre-training aims to train a general-purpose model on a large text corpus, which usually takes several days in with tens of TPU chips but only happens once for each language. While fine-tuning fine-tunes the pre-trained model for a particular task or for the future extension with a specific dataset. The fine-tuning is inexpensive in computation comparing with pre-training. However, due to the size of the BERT model does not reduce in fine-tuning, the memory consumption of fine-tuning is still large. Fine-tuning happens more  frequent than pre-training, and often happen in GPU and CPU since they are easy to access compared with TPUs.}
 
 
-\textcolor{check}{
-We train the BERT-Large model~\cite{devlin2018bert}.  Table~\ref{tab:hw_gpu} shows the hardware details. 
-Because of small memory capacity on GPU, the maximum batch size for training is 5, but \textcolor{red}{we use 4 because it leads to the shortest training convergence time on GPU}. On CPU, we use 16 and 32 as the batch size, following the common practice~\cite{devlin2018bert}. We evaluate three common learning rates 5e-5, 3e-5, and 2e-5 suggested in~\cite{devlin2018bert}, but present the results that use one of the three rates that leads to the fastest training convergence.}
 
+We %train 
+\textcolor{jie}{fine-tune} the BERT-Large model~\cite{devlin2018bert}.  Table~\ref{tab:hw_gpu} shows the hardware details. 
+Because of small memory capacity on GPU, the maximum batch size for training is 5, but \textcolor{dong2}{we use 4 because it \textcolor{dong2}{is the batch size suggested by the BERT authors and also leads to the fastest training convergence time on GPU}}. On CPU, we use 16 and 32 as the batch size, following the common practice~\cite{devlin2018bert}. We evaluate three common learning rates 5e-5, 3e-5, and 2e-5 suggested in~\cite{devlin2018bert}, but present the results that use one of the three rates %%%that leads to the fastest training convergence.
+\textcolor{dong2}{with which the training loss converges to a stationary point fastest.}
+%\textcolor{jie}{when the training loss converges to a stationary point fastest. }
 %\textcolor{jie}{We compare the BERT-Large model~\cite{devlin2018bert} fine-tuning procedure in CPU and GPU. Table~\ref{tab:hw_gpu} shows the hardware details. Due to the limited memory size in GPU, we chose 4 as the batch size for BERT-Large model fine-tuning on GPU, and the maximum batch size fit in experimental GPU is 5. The DRAM size on CPU much larger, and we choose 16 and 32 as the batch size for BERT-Large model fine-tuning on CPU. We choose three different learning rates 5e-5, 3e-5, 2e-5 as suggested in BERT~\cite{devlin2018bert} and present the best configuration for each batch size(i.e., the learning rate to converge fastest) for the following comparison.}
 %%%Due to the limited memory size in GPU, the maximum batch size is small for fine-tuning on a GPU is about 4 to 6.
 
@@ -25,7 +32,7 @@ Because of small memory capacity on GPU, the maximum batch size for training is 
 %\small
 %\vspace{-3pt}
 \caption{\textcolor{check}{CPU and GPU platforms for training.}}
-\vspace{-5pt}
+\vspace{-7pt}
 \begin{tabular}{ll}
 \hline
 CPU: Intel Xeon E5-2670 CPU & RAM : 64GB\\ %\phantom{LA}  @2.30GHz
@@ -45,12 +52,13 @@ GPU: Nvidia TITAN XP GPU & RAM : 11427MB\\
 %\vspace{-25pt}
 %\caption{\name tensor access histogram.  x-axis shows tensor access frequency and y-axis shows the number of tensors.}
 %\caption{\textcolor{jie}{BERT training loss curve with different batch size. ``bs'' and ``lr'' stand for `batch size' and  ``learning rate'' respectively.}}
-\vspace{-20pt}
-\caption{\textcolor{check}{BERT training loss curves. ``bs'' and ``lr'' stand for `batch size' and  ``learning rate'' respectively.}}
-\vspace{-5pt}
+\vspace{-22pt}
+\caption{\textcolor{check}{BERT training loss curves. ``bs'' and ``lr'' stand for ``batch size'' and  ``learning rate'' respectively.}}
+\vspace{-3pt}
 \label{fig:bert_motivation}
 \end{figure}
 
+\begin{comment}
 \begin{table}[t]
 \small
 \caption{\textcolor{check}{Convergence times on five datasets in GLUE.}}
@@ -65,7 +73,24 @@ GPU: Nvidia TITAN XP GPU & RAM : 11427MB\\
 \vspace{-5pt}
 \label{tab:glue_bench}
 \end{table}
-
+\end{comment}
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+\begin{table}[t]
+\small
+\caption{\textcolor{dong2}{Peak memory consumption and convergence times on five datasets in GLUE.}}
+\vspace{-7pt}
+\begin{tabular}{|c|p{0.33cm}|p{0.335cm}|p{0.33cm}|p{0.335cm}|p{0.33cm}|p{0.335cm}|p{0.33cm}|p{0.335cm}|p{0.33cm}|p{0.335cm}|}
+\hline
+\multirow{2}{*}{\textbf{\begin{tabular}[c]{@{}c@{}}Batch\\ Size\end{tabular}}} & \multicolumn{2}{c|}{\textbf{MRPC}} & \multicolumn{2}{c|}{\textbf{RTE}} & \multicolumn{2}{c|}{\textbf{STS-B}} & \multicolumn{2}{c|}{\textbf{CoLA}} & \multicolumn{2}{c|}{\textbf{SST-2}} \\ \cline{2-11} 
+ &\scriptsize \begin{tabular}[c]{@{}l@{}}mem\\ (GB)\end{tabular}  &\scriptsize \begin{tabular}[c]{@{}l@{}}time\\ (min)\end{tabular}  &\scriptsize \begin{tabular}[c]{@{}l@{}}mem\\ (GB)\end{tabular}  &\scriptsize \begin{tabular}[c]{@{}l@{}}time\\ (min)\end{tabular} &\scriptsize \begin{tabular}[c]{@{}l@{}}mem\\ (GB)\end{tabular} &\scriptsize \begin{tabular}[c]{@{}l@{}}time\\ (min)\end{tabular} &\scriptsize \begin{tabular}[c]{@{}l@{}}mem\\ (GB)\end{tabular} &\scriptsize \begin{tabular}[c]{@{}l@{}}time\\ (min)\end{tabular} &\scriptsize \begin{tabular}[c]{@{}l@{}}mem\\ (GB)\end{tabular} &\scriptsize \begin{tabular}[c]{@{}l@{}}time\\ (min)\end{tabular}  \\ \hline
+\textbf{4(GPU)}  &8.37 &39 &8.8  & 48 & 8.17  & 163  &8.5 & 209 &8.17  & 187  \\ \hline
+\textbf{16(CPU)} &32 & 110&40 & 85  &30 & 267& 36  & 219 &30  & 540   \\ \hline
+\textbf{32(CPU)} &44 & 106& 51 & 104&42& 282  &48 & 237 & 42 & 539  \\ \hline
+\end{tabular}
+\vspace{-7pt}
+\label{tab:glue_bench}
+\end{table}
 
 \textcolor{check}{
 Figure~\ref{fig:bert_motivation} shows the training curve when we use the CoLA dataset in GLUE benchmark~\cite{wang-etal-2018-glue}. We have two observations.}
@@ -77,7 +102,9 @@ Figure~\ref{fig:bert_motivation} shows the training curve when we use the CoLA d
 \end{itemize}
 
 \textcolor{check}{
-We test five datasets in GLUE and have the same observations. Table~\ref{tab:glue_bench} summarizes the training convergence times. The above observations are due to the fact that GPU has a much smaller memory capacity and has to use a smaller batch size for training. Larger memory capacity on CPU brings obvious benefits to train large machine learning models, which drives our study on runtime data management on HM on CPU.
+We test five datasets in GLUE and have the same observations. \textcolor{dong2}{Table~\ref{tab:glue_bench} summarizes the peak memory usage and training convergence times.} The above observations are due to the fact that GPU has a much smaller memory capacity and has to use a smaller batch size for training,
+\textcolor{dong2}{which makes the training process more stochastic and less stable}. Larger memory capacity on CPU brings obvious benefits to train large machine learning models \textcolor{dong2}{with large batch size, which also motivates our study on runtime data management on HM on CPU}.
+%, which drives our study on runtime data management on HM on CPU.
 }
 
 

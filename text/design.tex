@@ -12,13 +12,12 @@
 
 
 
-\name consists  of multiple components, shown in Figure~\ref{fig:overview}. The dynamic profiling component collects memory access information at the data object level, and decides the lifetime of data objects based on  customized memory allocation
-%textcolor{jie}{extended memory allocation }
-and limited user annotation. The dynamic profiling only uses one training step to collect the information. After that, \name re-organizes memory allocation for short-lived data objects to facilitate data management and avoid page-level false sharing.
+\name consists  of multiple components, shown in Figure~\ref{fig:overview}. The dynamic profiling component collects memory access information at the data object level, and decides the lifetime of data objects based on customized memory allocation
+and limited user annotation   \textcolor{dong2}{(Section~\ref{sec:dyn_profiling_data_org})}. The dynamic profiling only uses one training step to collect the information. After that, \name re-organizes memory allocation for short-lived data objects to facilitate data management and avoid page-level false sharing.
 
-Driven by the profiling results, we treat short-lived and long-lived data objects separately. Short-lived data objects are allocated in a contiguous memory space in fast memory, and are not involved in data movement between fast and slow memories. This method avoids inefficient data movement due to short liveness. 
+Driven by the profiling results, we treat short-lived and long-lived data objects separately   \textcolor{dong2}{(Section~\ref{sec:short-lived})}. Short-lived data objects are allocated in a contiguous memory space in fast memory, and are not involved in data movement between fast and slow memories. This method avoids inefficient data movement due to short liveness. 
 
-To handle long-lived data objects, \name uses an adaptive migration algorithm. The algorithm partitions each training step into migration intervals, based on the DNN model topology. In a migration interval, \name migrates data objects needed for the next interval, overlapping application execution with data migration. During data migration, \name must determine an appropriate migration interval, such that the data objects can be timely migrated from slow to fast memory before they are needed by DNN training. We formulate the problem and determine the optimal migration interval. We also use a test-and-trial algorithm to determine if the migration cannot happen timely, whether continuing migration or not can lead to better performance. 
+To handle long-lived data objects, \name uses an adaptive migration algorithm  \textcolor{dong2}{(Section~\ref{sec:adaptive_dm})}. The algorithm partitions each training step into migration intervals, based on the DNN model topology. In a migration interval, \name migrates data objects needed for the next interval, overlapping application execution with data migration. During data migration, \name must determine an appropriate migration interval, such that the data objects can be timely migrated from slow to fast memory before they are needed by DNN training. We formulate the problem and determine the optimal migration interval. We also use a test-and-trial algorithm to determine if the migration cannot happen timely, whether continuing migration or not can lead to better performance. 
 
 
 %In general, \name uses the following domain knowledge to enable high performance of DNN training. 
@@ -92,9 +91,13 @@ Furthermore, \name preallocates a memory pool to meet the memory allocation requ
 During DNN training, an individual short-lived data object is not accessed many times (e.g., less than 10 times in ResNet) in main memory, compared to many long-lived data objects. Hence, the data placement of a specific short-lived data object has an ignorable impact on the performance of DNN training. However, as our profiling results show that there are a large amount of short-lived data objects throughout the whole training process, and they share the same memory access characteristics (i.e., short-liveness, small size, and a small number of accesses in main memory). We must use a general policy to manage them.   
 
 %\textcolor{red}{Paragraph: describe our algorithm that reserves a space in fast memory to handle small data objects}
-We use the following algorithm to manage short-lived data objects. We allocate a continuous memory space in fast memory for short-lived data objects. Data objects in this space are never considered for migration. This space is reused for short-lived data objects, as they are allocated and freed \textcolor{check}{throughout the training process}. The space is allocated at the beginning of each migration interval to accommodate short-lived data objects in the interval. Doing this, \name guarantees that there is always memory space for short-lived data objects (i.e., no competition from long-lived data objects), because the placement of short-lived data objects is critical for performance. 
+We use the following algorithm to manage short-lived data objects. We allocate a continuous memory space in fast memory for short-lived data objects. Data objects in this space are never considered for migration. This space is reused for short-lived data objects, as they are allocated and freed 
+throughout the training process. The space is %allocated 
+\textcolor{dong2}{reserved} at the beginning of each migration interval to accommodate short-lived data objects in the interval. Doing this, \name guarantees that there is always memory space for short-lived data objects (i.e., no competition from long-lived data objects), because the placement of short-lived data objects is critical for performance. 
 %dynamically expanded, when there is no free space to accommodate the allocation requests;  
-Within an migration interval, the space can be dynamically shrunk to free space for long-lived tensors, when a memory page in the space is freed. %We collect short-lived data objects in this memory space, such that those short-lived data objects allocated and accessed at the similar time can be placed into the same page to avoid page-level false sharing. 
+Within a migration interval, space can be dynamically shrunk to free space for long-lived data objects, when a memory page in the space %is freed. 
+\textcolor{dong2}{is no longer needed by short-lived data objects.}
+%We collect short-lived data objects in this memory space, such that those short-lived data objects allocated and accessed at the similar time can be placed into the same page to avoid page-level false sharing. 
 
 
 %\textcolor{red}{Paragraph: the reason why we never move short-lived data objects out of fast memory. Mention that the existing algorithm can inappropriately handle short-lived data objects.}
@@ -102,23 +105,35 @@ The above method addresses the limitation of the existing methods that use a cac
 
 
 %\textcolor{red}{Paragraph: what if there is no enough space to hold short-lived data objects? This case will never happen.}
-In our design, fast memory is always large enough to host short-lived data objects. If not, short-lived data objects will be frequently moved between fast and slow memories. This data movement is highly inefficient in terms of both performance and energy efficiency, especially for data objects with a short lifetime. Hence, we assume that the fast memory size is at least larger than the peak memory consumption of those short-lived data objects. We have a discussion on the fast memory size in Section~\ref{sec:discussion}.  
+In our design, fast memory is always large enough to host short-lived data objects. If not, short-lived data objects will be frequently moved between fast and slow memories. This data movement is highly inefficient in terms of both performance and energy efficiency. %, especially for data objects with a short lifetime. 
+Hence, we assume that the fast memory size is at least larger than the peak memory consumption of those short-lived data objects (discussed in Section~\ref{sec:discussion}). 
+%We have a discussion on the fast memory size in Section~\ref{sec:discussion}.  
 
-Since short-lived data objects are frequently allocated and freed and we reuse the same memory space to host them, the size of memory space for short-lived data objects is small, and typically bounded by a few GB. 
+Since short-lived data objects are frequently allocated and freed and we reuse the same memory space to host them, the size of peak memory space for short-lived data objects is small, and typically bounded by a few GB
+\textcolor{dong2}{, making it feasible to host short-lived objects in fast memory without consuming too much space}
+. 
 
 \vspace{-5pt}
-\subsection{Adaptive Data Migration}
+%\subsection{Adaptive Data Migration}
+\subsection{\textcolor{dong2}{Adaptive Layer-based Migration}}
 \label{sec:adaptive_dm}
 
 
 %\textcolor{dong}{paragraph: basic idea about the data migration and migration interval. Add a figure here?}
-We migrate data for those long-lived data objects. %and short-lived tensors (if the space of fast memory is not enough to accommodate the upcoming data migration). 
-The data migration is controlled by the \textit{migration interval}. The migration interval determines how frequently we migrate data between fast and slow memories. A training step is partitioned into many equal-sized
-migration intervals. Figure~\ref{fig:migration_interval} generally depicts data migration.
+%%%We migrate data for those long-lived data objects, 
+We migrate long-lived data objects 
+\textcolor{dong2}{because they are used sparsely and periodically}. %and short-lived tensors (if the space of fast memory is not enough to accommodate the upcoming data migration). 
+%%%The data migration is controlled by the \textit{migration interval}. The migration interval determines how frequently we migrate data between fast and slow memories. A training step is partitioned into many equal-sized
+The data migration is controlled by the \textit{migration interval} \textcolor{dong2}{which is a system parameter that} determines how frequently we migrate data between fast and slow memories. %%%A training step is partitioned into many equal-sized migration intervals. Figure~\ref{fig:migration_interval} generally depicts data migration.
+\textcolor{dong2}{In particular, we partition a training step (one forward step plus one backward step) into several equal-sized intervals, as depicted in Figure 5.}
 
-Data migration from slow to fast memory is triggered at the beginning of each interval, aiming to prefetching data objects needed by the next interval into fast memory before the next interval starts. The data migration happens in the middle of each interval, in order to overlap data migration with DNN training as much as possible, such that the overhead of data migration is removed from the critical path. 
+Data migration from slow to fast memory is triggered at the beginning of each interval, aiming to prefetching data objects needed by the next interval into fast memory before the next interval starts. The data migration happens in the middle of each interval, in order to overlap data migration with DNN training computation as much as possible, such that the overhead of data migration is removed from the critical path. 
 
-Data migration from fast to slow memory is triggered and happens in the middle of the interval, when the long-lived data object is not accessed in the interval. Such data migration is used to save the space of fast memory as much as possible, in order to accommodate upcoming data migration. %and save space for short-lived data objects.
+Data migration from fast to slow memory is triggered and happens in the middle of the interval, when the long-lived data object is \textcolor{dong}{no longer accessed by any operation in the interval}. Such data migration is used to save the space of fast memory as much as possible, in order to accommodate upcoming data migration. \textcolor{dong}{We can know if a long-lived data object will be used by any operation in an interval by using the dynamic profiling results.}
+%%\textcolor{red}{%%%We keep a access counter for each long-lived data objects and initialize it with the total access time of this long-lived data objects in current migration interval. 
+%%By bookkeeping the long-lived data objects access time and comparing it with profiling result, we can identify whether the long-lived data object will be accessed in current migration interval.}
+
+%and save space for short-lived data objects.
 %\textcolor{green}{For each migration interval, \name migrates data into fast memory which will be used in next migration interval execution. Using migration interval ensures \name migrate data for future usage.}
 
 \begin{comment}
@@ -139,8 +154,8 @@ Data migration from fast to slow memory is triggered and happens in the middle o
 \vspace{-20pt}
 \caption{
 \textcolor{jie}{
-Data migration based on the migration interval. 
-\textcolor{jie}{ `S'', ``F'' stand for slow and fast memories respectively.}}
+Data migration based on the migration interval.  
+\textcolor{check}{``S'' and ``F'' stand for slow and fast memories respectively.}}
 %\textcolor{dong}{At the beginning of a migration interval, \name triggers bidirectional migration between slow and fast memories. %but for different data objects. ``S'', ``F'' and ``MI'' stand for slow and fast memories, and migration interval respectively.} 
 }
 	\centering
@@ -149,7 +164,12 @@ Data migration based on the migration interval.
 \end{figure}
 
 %\textcolor{red}{paragraph: the migration interval is defined in terms of layers. why?}
-We define the migration interval in terms of layers in DNN, not in terms of execution time, because of the following three reasons. First, the layer-based migration interval naturally guarantees the completion of operations at the end of the interval, because no operation runs across layers. The time-based migration interval cannot guarantee that, which brings inevitable synchronization between application execution and data migration, causing performance loss. Using the DNN domain knowledge (i.e., the layers), we avoid the above problem. Second, each layer is associated with a computation phase that shows a memory access pattern. The layer-based migration interval allows us to easily leverage the memory access patterns collected at the profiling phase to guide data migration. Third, the time-based migration imposes challenges on deciding which operations are in which migration interval, because of operation-level parallelism.
+We define the migration interval in terms of layers in DNN, not in terms of execution time, because of the following three reasons. First, the layer-based migration interval naturally guarantees the completion of operations at the end of the interval, because no operation runs across layers. 
+%%%\textcolor{jie}{because our profiling results show that no operation runs across layers.}
+The time-based migration interval cannot guarantee that, which brings inevitable synchronization between application execution and data migration, causing performance loss. Using the DNN domain knowledge (i.e., the layers), we avoid the above problem. Second, each layer is associated with a computation phase that shows a memory access pattern  \textcolor{dong2}{(e.g., which data objects are  accessed and their lifetime)}. 
+%how intensively data object access happens)}. 
+The layer-based migration interval allows us to easily leverage the memory access patterns collected at the profiling phase to guide data migration. Third, the time-based migration imposes challenges on deciding which operations are in which migration interval, because  \textcolor{dong}{operation-level parallelism  (including inter-op and intra-op)} 
+\textcolor{dong2}{makes it difficult to predict the execution time of each operation}.
 
 %\textcolor{red}{paragraph: the challenge of determining the migration interval. Large vs. small interval}
 
@@ -197,7 +217,7 @@ $RS$ is relatively stable, according to our profiling results. There is a small 
 
 The two equations, although revealing the inherent trade-off between small and large migration intervals, cannot reveal the optimal one, because they do not capture the data movement from fast to slow memory. Such data movement increases the available fast memory space. Because of such data movement, those migration intervals that meet the two constraints can perform differently. 
 
-We use the following method to determine the optimal migration interval at runtime. After collecting the profiling results, we use Equations~\ref{eq:space_constraint} and~\ref{eq:time_constraint} to prune the search space of the migration interval and choose those that meet the constraints. Then we use a few more training steps, each of which employs a migration interval. We measure their performance, and choose the optimal migration interval that leads to the best performance. 
+We use the following method to \textcolor{dong2}{heuristically }determine the optimal migration interval at runtime. After collecting the profiling results, we use Equations~\ref{eq:space_constraint} and~\ref{eq:time_constraint} to prune the search space of the migration interval and choose those that meet the constraints. Then we use a few more training steps, each of which employs a migration interval. We measure their performance, and choose the optimal migration interval that leads to the best performance. %\textcolor{jie}{Below we provide the details of the algorithm. }
 
 
 %\textcolor{red}{paragraph: discuss the three possible cases at the end of the migration interval.}
@@ -205,11 +225,12 @@ We use the following method to determine the optimal migration interval at runti
 \begin{itemize}[leftmargin=*]
     \item Case 1: All data migration has been finished;
     \item Case 2: Data migration cannot be finished, because fast memory cannot offer enough free space;
-    \item Case 3: Data migration cannot be finished, because there is no enough time for migration (there is still space in fast memory).
+    \item Case 3: Data migration cannot be finished, because there is not 
+    enough time for migration (there is still space in fast memory).
 \end{itemize}
 
-In Case 1, once $B$ starts, all of the migrated data object are in fast memory, which is the ideal case. For Cases 2 and 3, we must avoid them for best performance. %\textcolor{green}{show the frequency of three possible cases at the end of the migration interval with different migration interval?}
-The migration interval has impact on how often the three cases happen. Given a specific fast memory size, a small interval can create more Case 3, and a large interval can create more Case 2. Figure~\ref{fig:migration_interval_three_cases} shows how many times each case happens, when we use different migration intervals for training ResNet\_v1-32 with 1GB fast memory. When the migration interval decreases from 11 to 5, Case 3 increases from 0 to 13; When the migration interval increases from 5 to 11, Case 2 increases from 0 to 4. This result is consistent with our analysis.
+In Case 1, once $B$ starts, all of the migrated data object are in fast memory, which is the ideal case. For Cases 2 and 3, we must avoid them for getting the best performance. %\textcolor{green}{show the frequency of three possible cases at the end of the migration interval with different migration interval?}
+The migration interval has impact on how often the three cases happen. Given a specific fast memory size, a small interval can create more Case 3, and a large interval can create more Case 2. Figure~\ref{fig:migration_interval_three_cases} shows how many times each case happens, when we use different migration intervals for training ResNet-32 with 1GB fast memory. When the migration interval decreases from 11 to 5, Case 3 increases from 0 to 13; When the migration interval increases from 5 to 11, Case 2 increases from 0 to 4. This result is consistent with our analysis.
 
 %The figure shows that even though we choose the optimal migration interval, \textcolor{red}{Cases 2 and 3 still happen.} 
 
@@ -222,7 +243,7 @@ The migration interval has impact on how often the three cases happen. Given a s
 	%\includegraphics[width=0.9\linewidth,height=0.45\linewidth]{ASPLOS2020_Jie/figures/f8_3edit.pdf}
 	\includegraphics[width=0.5\textwidth]{figures/three_cases.pdf}
 	\vspace{-20pt}
-    \caption{\textcolor{jie}{The occurrences of the three data migration cases in a training step of ResNet-32. ``MI'' stands for ``migration interval''. "SP" stands for sweet spot (the optimal migration interval). 
+    \caption{\textcolor{check}{The occurrences of the three data migration cases in a training step of ResNet-32. ``MI'' stands for ``migration interval''. "SP" stands for sweet spot (the optimal migration interval). 
     }}
     \vspace{-10pt}
     \label{fig:migration_interval_three_cases}
@@ -335,7 +356,7 @@ Some machine learning frameworks, such as PyTorch and TensorFlow 2.0, support dy
 %%%With dynamic graphs, batches are not identical. 
 Hence, there could be multiple graphs. 
 
-To handle dynamic graphs, the existing solution pads zero at the end of input~\cite{google_tensorflow_bucketing}, such that batches have the same structure. This transforms a dynamic graph into a static one, but at the cost of larger memory footprint and unnecessary computation. We use a solution similar to the one in~\cite{DBLP:conf/asplos/SivathanuCSZ19} that uses bucketed profiling. In particular, \name bucketizes the input sizes into a small \textcolor{jie}{number} of buckets (at most 10 in \name
+To handle dynamic graphs, the existing solution pads zero at the end of input~\cite{google_tensorflow_bucketing}, such that batches have the same structure. This transforms a dynamic graph into a static one, but at the cost of larger memory footprint and unnecessary computation. We use a solution similar to the one in~\cite{DBLP:conf/asplos/SivathanuCSZ19} that uses bucketed profiling. In particular, \name bucketizes the input sizes into a small  \textcolor{dong2}{number} of buckets (at most 10 in \name
 ), and each bucket has a similar graph. \name profiles each bucket to collect memory access information and decide data migration. 
 
 

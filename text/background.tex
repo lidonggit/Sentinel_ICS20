@@ -1,10 +1,13 @@
+%\vspace{-5pt}
 \section{Background}
 \label{sec:bg}
 
-We provide a brief background on the training process of DNN models and HM. 
+%We provide a brief background in this section.
+%on the training process of DNN models and HM. 
 %and the current state of using heterogeneous main memory systems.
-
+\vspace{-2pt}
 \subsection{Training DNN Models}
+\vspace{-1pt}
 \label{sec:bg_training}
 %\textcolor{red}{introduce the basic concepts of model training, such as layers and training accuracy; See the astra paper (ASPLOS paper)}
 %\textcolor{red}{introduce the task dataflow model (execution model)}
@@ -28,8 +31,9 @@ Using CPU for training has the following four benefits.
 
 %(1) The widespread deployment of CPUs makes this hardware platform an attractive target for machine learning model training. (2) The optimizations on GPU lack of generality. (3) In terms of programmability, porting the original code to GPU kernels requires significant programming efforts; (4) GPU has strong bias towards certain application. Existing effort has been made in academic and industry to optimize machine learning training on widely available CPU based architecture. Adam~\cite{Chilimbi:2014:PAB:2685048.2685094} from Microsoft. Intel MKL-DNN\cite{intelMKL} has been proposed to accelerate machine learning training. 
 
-
+\vspace{-5pt}
 \subsection{Data Management on HM}
+\vspace{-1pt}
 %%Software-controlled HM is emerging. Examples of this system include non-volatile 3D XPoint memory alongside DRAM, high-bandwidth multi-channel DRAM alongside DDR4 in Intel Knight's Landing, distributed memory components in the disaggregated memory system. 
 The online data management on HM typically involves three fundamental steps: (1) memory profiling, (2) decision making for data migration, and (3) data migration. 
 
@@ -37,7 +41,8 @@ The memory profiling step collects memory access information for pages or data o
 
 \textbf{Recent research efforts.}
 %Given the promising of HM, data management on HM remains an active area of research. 
-The three steps create major optimization targets in the existing research efforts. We list the targets as follows. Our work shares the same optimization targets as the existing efforts.
+The three steps create major optimization targets in the existing research efforts. %We list the targets as follows. 
+Our work shares the same optimization targets as the existing efforts as follows.
 %\squishlist
 \begin{itemize}[leftmargin=*]
     \item Memory profiling must have ignorable impact on application performance while being accurate;

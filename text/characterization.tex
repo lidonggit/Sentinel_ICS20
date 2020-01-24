@@ -1,6 +1,7 @@
 \section{Analysis and Characterization of Main Memory Accesses in DNN}
 \label{sec:char}
-We analyze and characterize main memory accesses in DNN and use the analysis results to drive our design.
+%We analyze and characterize main memory accesses in DNN and use the analysis results to drive our design.
+We characterize main memory accesses in DNN to drive our design.
 
 
 \subsection{Profiling Framework}
@@ -11,13 +12,15 @@ We analyze and characterize main memory accesses in DNN and use the analysis res
 We build a profiling framework for our study.
 The profiling framework collects the following information: the number of \textit{main memory accesses} per data object (tensor), data object size and lifetime. 
 
-To collect the above information, the profiling framework includes the support at \textit{both} OS and TensorFlow runtime levels. At the OS level, \name collects the number of memory accesses at the page level. This is implemented by a software-only solution. In particular, when a page is tracked for access counting, \name sets a reserved bit (bit 51) in its PTE (i.e., poisoning PTE) and then flush the PTE from TLB. When the page is accessed, a TLB miss occurs and triggers a protection fault. \name uses a customized fault handler to count this page access, poison the PTE and flush it from TLB again to track next page access. Poisoning PTE only happens during the profiling. After it, poisoning PTE and flushing TLB do not happen. 
+To collect the above information, the profiling framework includes the support at \textit{both} OS and TensorFlow runtime levels. At the OS level, \name collects the number of memory accesses at the page level. This is implemented by a software-only solution. In particular, when a page is tracked for access counting, \name sets a reserved bit (bit 51) in its PTE (i.e., poisoning PTE) and then flush the PTE from TLB. When the page is accessed, a TLB miss occurs and triggers a protection fault. \name uses a customized fault handler to count this page access, poison the PTE and flush it from TLB again to track next page access. Poisoning PTE and flushing TLB only happens during the profiling. %After it, poisoning PTE and flushing TLB do not happen. 
 
 
 %\textcolor{red}{poisoning PTEs at the page table(i.e., setting PTE reserved bit) and then flushing the PTE from TLB. When the page be accessed again, a TLB miss occurs and triggers a protection fault. \name implement customized TLB miss handler to record page access information and poison this PTE again to keep recording the next of this page access. Note that \name profiling triggers a customized system call to start collect the number of memory access at page level. When the profiling finishes, another system call will be triggered and PTEs will no longer be poisoned. }
 
 %To bridge the semantic gap between OS and application, each memory page has only one data object (but a data object can use more than one pages). 
-To bridge the semantic gap between OS and application, each memory page has only one data object (but a data object can use more than one pages). \textcolor{check}{This is implemented by making object allocation aligned with memory page.} Using this method, page-level profiling becomes data object-level profiling. Such memory allocation does not change memory access patterns captured by the hardware caching mechanism in the cache hierarchy, hence providing reliable estimation on main memory accesses. \textcolor{check}{Such memory allocation only slightly increases memory footprint (discussed in Section~\ref{sec:eval_results}).}. But it happens during the profiling phase of \name on slow memory. After the profiling phase, data objects are re-organized to reduce memory footprint and improve performance. Data reorganization happens \textit{during memory allocation} (see Section~\ref{sec:profiling_results}), and hence does not stop training process and does not impact performance. Also, the profiling method does not increase the consumption of fast memory. 
+To bridge the semantic gap between OS and application, each memory page has only one data object (but a data object can use more than one pages). \textcolor{check}{This is implemented by making object allocation aligned with memory page.} Using this method, page-level profiling becomes data object-level profiling. Such memory allocation does not change memory access patterns captured by the hardware caching mechanism in the cache hierarchy, hence providing reliable estimation on main memory accesses. %Such memory allocation only slightly increases memory footprint (discussed in Section~\ref{sec:eval_results}). But it happens during the profiling phase of \name on slow memory.
+It only slightly increases memory footprint (discussed in Section~\ref{sec:eval_results}) and happens during the profiling phase of \name on slow memory.
+After the profiling phase, data objects are re-organized to reduce memory footprint and improve performance. Data reorganization happens \textit{during memory allocation} (see Section~\ref{sec:profiling_results}), and hence does not stop training process and does not impact performance. Also, the profiling method does not increase the consumption of fast memory. 
 
 
 At the TensorFlow runtime level, \name leverages memory allocation and deallocation to get the size and lifetime of data objects. Furthermore, \name introduces an API that allows the user to annotate DNN to indicate the end of each layer in DNN.
@@ -49,7 +52,8 @@ dilemma between profiling overhead and accuracy. In particular, frequently colle
 
 %\textcolor{green}{paragraph: Due to the predicative of ML model, profiling one training step without sampling can have more accurate result. Profiling happens on slow memory.
 
-\subsection{Profiling Results and Analysis}
+%\subsection{Profiling Results and Analysis}
+\subsection{\textcolor{dong2}{Observations and Preliminary Analysis}}
 \label{sec:profiling_results}
 
 \begin{comment}
@@ -71,7 +75,7 @@ We use the profiling framework to study data objects and their access patterns i
 
 \end{comment}
 
-\textcolor{check}{We profile DNN models listed in Table~\ref{tab:models}.}
+We profile DNN models listed in Table~\ref{tab:models} \textcolor{dong2}{and come up with the following observations, which guide our design: }
 
 \textbf{Observation 1}: There are a large number of small data objects with short lifetime in DNN training workloads.
 
@@ -147,7 +151,7 @@ The figure shows that a large number of data objects (52.3\% of data objects, us
 
 \textbf{Observation 3}: Page-level false sharing exists in DNN. The page-level profiling (not data object-level) for data management can be misleading. 
 
-\textcolor{check}{In ResNet-32, if we perform data object-level profiling, we find that in a training step, for those less-frequently accessed data objects that have only 1-10 accesses in main memory, their total object size is 907 MB. However, if we perform page-level profiling, we find that in the same training step, for those memory pages with 1-10 accesses in main memory, their total page size is 763 MB.  This indicates that some less-frequently accessed data objects fall into some pages that are counted as more frequently accessed. Hence, using page-level profiling to guide data management, those less-frequently accessed data objects can be placed into fast memory and waste memory space and bandwidth. We refer to the above result as page-level false sharing. }
+\textcolor{check}{In ResNet-32, if we perform data object-level profiling, we find that in a training step, for those less-frequently accessed data objects that have only 1-10 accesses in main memory, their total object size is 907 MB. However, if we perform page-level profiling, we find that in the same training step, for those memory pages with 1-10 accesses in main memory, their total page size is 763 MB.  This indicates that some less-frequently accessed data objects fall into some pages that are counted as more frequently accessed. Hence, if one uses page-level profiling to guide data management, those less-frequently accessed data objects can be placed into fast memory and waste memory space and bandwidth. We refer to the above result as page-level false sharing. }
 
 
 \begin{comment}
@@ -222,7 +226,7 @@ Our result is against the above rationale, which suggests that some data objects
 \centering
 \includegraphics[width=0.49\textwidth]{figures/tensor_usage.pdf}
 \vspace{-20pt}
-\caption{\textcolor{jie}{An example to show tensor access patterns across layers in ResNet-32. This figure shows the first three layers and the last three layers in ResNet-32}.}
+\caption{\textcolor{check}{An example to show tensor access patterns across layers in ResNet-32. This figure shows the first three layers and the last three layers in ResNet-32}.}
 \vspace{-5pt}
 \label{fig:tensor_usage}
 \end{figure}
@@ -231,23 +235,32 @@ Our result is against the above rationale, which suggests that some data objects
 \includegraphics[width=0.48\textwidth]{figures/conv_tensor_usage.pdf}
 \vspace{-20pt}
 \caption{\textcolor{check}{Data processing in a TensorFlow operation, \texttt{nn.conv2d}.}}
-\vspace{-5pt}
+\vspace{-10pt}
 \label{fig:conv_tensor_usage}
 \end{figure}
 
 
 \textcolor{check}{
-\textbf{Example.} We discuss observations in the context of a DNN model (ResNet-32) to understand how data objects are managed in a typical DNN workload. Figure~\ref{fig:tensor_usage} shows operations in six layers, and Figure~\ref{fig:conv_tensor_usage} shows data processing in a common operation (\texttt{nn.conv2d}) used in forward and backward propagation of DNN. }
+\textbf{Example.} %We discuss observations in the context of a DNN model (ResNet-32) 
+\textcolor{dong2}{To see more details, let us use an example of ResNet-32 }
+to understand how data objects are managed in a typical DNN workload. Figure~\ref{fig:tensor_usage} shows operations in six layers, and Figure~\ref{fig:conv_tensor_usage} shows data processing in a common operation (\texttt{nn.conv2d}) used in forward and backward propagation of DNN. }
 
-\textcolor{check}{\textit{Long-lived tensors.} We find two cases. (1) Weights associated with each layer (shown as ``w1'' and ``w2'' etc. in Figure~\ref{fig:tensor_usage}). They are allocated before training steps, and updated throughout them.  (2) Intermediate results generated in a layer and consumed by the downstream operations in another layers. An example is the output tensors of operations \texttt{nn.conv2d} and \texttt{nn.relu} in the forward propagation layers shown in Figure~\ref{fig:conv_tensor_usage}. These output tensors are consumed by the backward propagation layers. The memory space for these intermediate results is allocated when they are generated and then freed after they are consumed.}
+\textcolor{check}{\textit{Long-lived tensors.} We find two cases. (1) Weights associated with each layer (shown as ``w1'' and ``w2'' etc. in Figure~\ref{fig:tensor_usage}). They are allocated before training steps, and updated throughout them.  (2) Intermediate results generated in a layer and consumed by the downstream operations in another layers. An example is the output tensors of operations \texttt{nn.conv2d} and \texttt{nn.relu} in the forward propagation layers shown in Figure~\ref{fig:conv_tensor_usage}. These output tensors are consumed %by the backward propagation layers. 
+\textcolor{dong2}{by the backward propagation layers to calculate gradients.}
+The memory space for these intermediate results is allocated when they are generated and then freed after they are consumed.}
 
 
+\begin{comment}
 \textcolor{check}{\textit{Short-lived tensors.}
 We find three cases. (1) Inside an operation, many data processing (e.g., padding and transpose shown in Figure~\ref{fig:conv_tensor_usage}, expansion, concatenation and squeeze) generates short-lived tensors, which are only used in that operation; (2) The output tensor of some operation is short-lived, exemplified by the output of batch normalization (i.e.,\textit{nn.bn} in Figure~\ref{fig:tensor_usage}); (3) Some tensors generated but never consumed in a DNN model. These tensors are generated, in order to enable operation generality across various DNN models. The gradient of input $dx$ in \texttt{nn.conv2d} backward propagation in Figure~\ref{fig:conv_tensor_usage} is such an example.  Memory allocation and free for a short-lived tensor always happen in one layer.}
+\end{comment}
 
-\textcolor{check}{\textit{Memory access patterns.}
-Memory accesses to all tensors are associated with layers. Memory accesses to a long-lived tensor tend to be ``sparse'' and periodical, which means memory accesses happen in a couple of specific layers, but not all layers. Memory accesses to short-lived tensors tends to be ephemeral and bursty, which means
-in a layer, there can be a number of short-lived tensors created, accessed a few times, and freed. In addition, memory allocations for long-lived  intermediate results and short-lived tensors are interleaved throughout the training process, which creates opportunities for page-level false sharing.}
+\textcolor{check}{\textit{Short-lived tensors.}
+We find two cases. (1) Inside an operation, many data processing (e.g., padding and transpose shown in Figure~\ref{fig:conv_tensor_usage}, expansion, concatenation and squeeze) generates short-lived tensors, which are only used in that operation; (2) The output tensor of some operation is short-lived, exemplified by the output of batch normalization (i.e.,\textit{nn.bn} in Figure~\ref{fig:tensor_usage}). Memory allocation and free for a short-lived tensor always happen in one layer.}
+
+\textit{Memory access patterns.}
+Memory accesses to all tensors are associated with layers. Memory accesses to a long-lived tensor tend to be \textcolor{dong2}{\textit{``sparse''} and \textit{periodical}}, which means memory accesses happen in a couple of specific layers, but not all layers. Memory accesses to short-lived tensors tends to be \textcolor{dong2}{\textit{ephemeral} and \textit{bursty},} which means
+in a layer, there can be a number of short-lived tensors created, accessed a few times, and freed. In addition, memory allocations for long-lived  intermediate results and short-lived tensors are interleaved throughout the training process, which creates opportunities for page-level false sharing.
 
 
 %There are a large number of short-lived data objects during the DNN training and not accessed many times (Observation 1). For one operation, the intermediate results and the output are allocated memory before the operation execution and might share the same memory page. However, those data objects have different access patterns(Observation 3). Without data object management in DNN training, the short-lived data objects and the long-lived data objects can be allocated in the same memory pages, which makes the memory usage inefficient. 

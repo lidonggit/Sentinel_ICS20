@@ -73,7 +73,7 @@
     \end{list}  }
 
 \definecolor{dong}{RGB}{0,0,255}  
-\definecolor{dong2}{RGB}{0,0,0}
+\definecolor{dong2}{RGB}{0,0,64}
 \definecolor{jie}{rgb}{0.0, 0.5, 0.0}
 \definecolor{check}{RGB}{0,0,0}
 %-------------------------------------------------------------------------------
@@ -103,8 +103,16 @@
 %-------------------------------------------------------------------------------
 
 %\textcolor{dong}{
-Lack of memory causes a range of functional and performance issues for training DNN. Heterogeneous memory (HM) provides a promising solution to increase memory capacity, but imposes challenges on data management (including memory allocation and migration). Training DNN is featured with a large amount of data objects and operations with diverse memory accesses patterns. Accurately profiling memory accesses and timely migrating data objects between heterogeneous memory components for best performance is challenging. We present \name, a runtime system that automatically optimizes data management on HM to achieve performance similar to that on the fast memory-only system but with a much smaller capacity of fast memory. \name leverages DNN workload repeatability to break the dilemma between profiling accuracy and overhead; By coordinating operating system (OS) and runtime-level profiling, \name bridges the semantic gap between OS and applications, and hence enables accurate profiling. By associating data objects with DNN topology, \name avoids unnecessary data movement and proactively triggers data movement. Using only \textcolor{check}{25\% of peak memory consumption of DNN models as fast memory size, \name achieves the same or comparable performance (at most 7\% performance difference) to the fast memory-only system on common DNN models; \name also consistently outperforms a state-of-the-art solution by 16\%.} 
+Lack of memory causes a range of functional and performance issues for training DNN. Heterogeneous memory (HM) provides a promising solution to increase memory capacity, but imposes challenges on data management (including memory allocation and migration). Training DNN is featured with a large amount of data objects and operations with diverse memory accesses patterns. Accurately profiling memory accesses and timely migrating data objects between heterogeneous memory components for best performance is challenging. We present \name, a runtime system that automatically optimizes data management on HM to achieve performance similar to that on the fast memory-only system but with a much smaller capacity of fast memory. 
+\textcolor{dong2}{The key insight in \name is to exploit limited domain knowledge about DNN training to proactively manage data objects on HM.} %for various DNN workload. }
+\name leverages DNN workload repeatability to break the dilemma between profiling accuracy and overhead; By coordinating operating system (OS) and runtime-level profiling, \name bridges the semantic gap between OS and applications, and hence enables accurate profiling. By associating data objects with DNN topology, \name avoids unnecessary data movement and proactively triggers data movement. %%%Using only \textcolor{check}{25\% of peak memory consumption of DNN models as fast memory size, \name achieves the same or comparable performance (at most 7\% performance difference) to the fast memory-only system on
+\textcolor{dong2}{\name reduces memory consumption of fast memory by 75\% while retaining the same or comparable training performance (at most 7\% performance difference) to the fast memory-only system on a wide range of }DNN models; \name also consistently outperforms a state-of-the-art solution by 16\% \textcolor{dong}{in training throughput}.
 
+
+%\textcolor{jie}{\name reduces memory consumption of fast memory by 75\% which retaining the same or comparable training performance (at most 7\% performance difference) to the fast memory-only system on a wide range of }DNN models; \name also consistently outperforms a state-of-the-art solution by 16\%. 
+
+
+%%%\textcolor{jie}{The key insight in \name is to manage data object proactively. }
 %Software-managed heterogeneous memory (HM) provides a promising solution to increase memory capacity and cost efficiency. However, to release the performance potential of HM, we face a problem of data management. Given an application with various execution phases and each with possibly distinct working sets, we must move data between memory components of HM to optimize performance.  The deep neural network (DNN), as a common workload on data centers, imposes great challenges on data management on HM. This workload often employs a task dataflow execution model,  and is featured with a large amount of small data objects and fine-grained operations (tasks). This execution model imposes challenges on memory profiling and efficient data migration.
 
 %because of the concerns on profiling accuracy and overhead; it also imposes challenges on data migration because of the concerns on page sharing between data objects with different access patterns. 
