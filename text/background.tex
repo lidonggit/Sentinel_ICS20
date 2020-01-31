@@ -59,21 +59,9 @@ The existing efforts explore hardware techniques for profiling and facilitate da
 
 We study a fundamentally new method for data management on HM. %ignore application knowledge which can be used to achieve the optimization targets with less performance overhead. 
 %%Inspired by the trend of using domain specific knowledge for hardware (e.g., AI accelerators~\cite{7738524, Jouppi:2017:IPA:3079856.3080246, 8192478, Shafiee:2016:ICN:3001136.3001139} and Anton for molecular dynamics simulation~\cite{Shaw:2008:ASM:1364782.1364802}) and software (e.g., domain specific language Halide~\cite{halide} and Liszt~\cite{DeVito:2011:LDS:2063384.2063396}), 
-We use very limited DNN domain knowledge to direct data placement. This method enables lightweight profiling, accurately capturing data hotness, timely triggering data migration, and effectively hiding data migration overhead. 
+We %%%%%use very limited DNN domain knowledge 
+\textcolor{check}{leverage DNN topology information }to direct data placement. This method enables lightweight profiling, accurately capturing data hotness, timely triggering data migration, and effectively hiding data migration overhead. 
 %avoids repeated profiling (hence reducing profiling overhead), accurately captures data hotness, and effectively hide the data migration overhead. 
-
-
-
-
-
-
-
-
-
-
-
-
-
 %``To ensure optimal performance, application developers will rely on both initial page placement policies and follow-up page migration policies to ensure that hot data pages remain within the highest bandwidth or lowest latency memory node during an application’s runtime''
 
 

@@ -9,6 +9,7 @@
 
 %\textcolor{green}{We evaluate 5 DNN models to verify the effectiveness of \name. Table~\ref{tab:models} shows the detail information. We use the implemetation of ResNet\_v2-152, LSTM, and Wide\_Deep model from TensorFlow software package~\cite{tf_models}, ResNet-32 from ~\cite{dcgan} and DCGAN from~\cite{resnet_32}.  The default intra-op and inter-op parallelisms are set as the number of one socket physical cores of the hardware platform (24 on the experimental platform).}
 
+%\begin{spacing}{0.95}
 We study HM in a machine with two memory nodes. We use one as fast local memory and one as slow remote memory. Table~\ref{tab:hardware} summarizes the hardware we use. We evaluate five DNN models.
 %to verify the effectiveness of \name. 
 Table~\ref{tab:models} shows model details. For %ResNet\_v2-152, LSTM, and %Wide\_Deep 
@@ -16,6 +17,7 @@ LSTM and MobileNet models in our evaluation, we use the implementations from Ten
 We train BERT with five datasets from GLUE~\cite{wang-etal-2018-glue}  shown in Table~\ref{tab:glue_bench}. \textcolor{check}{We present average results of the five datasets in this section to save space}. To use TensorFlow, the intra-op parallelism (i.e., the number of threads to run an operation) and inter-op parallelism (i.e., the maximum number of operations to co-run) are set as 24, which is the number of physical cores in a socket in our platform. 
 
 We compare \name with a state-of-the-art page migration system from Yan et al.~\cite{Yan:ASPLOS19}. They introduce a page migration algorithm by improving an existing page replacement mechanism in the Linux kernel (i.e., an FIFO-based active list~\cite{Yan:ASPLOS19}, named \textit{improved active list} (IAL) in the following discussion). In~\cite{Yan:ASPLOS19}, they improve the performance of the page migration mechanism by using four threads for parallel page copying and eight threads for concurrent page migration, and they optimize page locations every five seconds. \textcolor{check}{We use the same configuration for IAL in our evaluation}. \name does not use the page migration mechanism in~\cite{Yan:ASPLOS19}. Unless otherwise indicated, \textcolor{check}{the size of fast memory in our evaluation is equal to 25\% of peak memory consumption in DNN models.}
+%\end{spacing}
 
 %\textcolor{green}{We compare \name with the state-of-the-art multi-level page migration system from Yan et al.~\cite{Yan:ASPLOS19}. Yan proposes a page migration algorithm builds on existing Linux kernel page replacement algorithm. We mention Yan's page migration algorithm as \baseline. \name migrates pages according to page's state, page table entry’s access bit and page metadata access bit maintained by kernel. We set \baseline using 4-thread parallel and 8 page concurrent migration, and set \baseline optimizing page locations every 5 seconds. The configuration is based on \baseline optimal solution according to ~\cite{Yan:ASPLOS19}. }
 
@@ -23,11 +25,11 @@ We compare \name with a state-of-the-art page migration system from Yan et al.~\
 \centering
 %\scriptsize
 \small
-%\vspace{-3pt}
+\vspace{-5pt}
 %\caption{\textcolor{dong}{Hardware used in evaluation.}}
 \caption{Hardware overview of experimental system.}
 \vspace{-5pt}
-%\vspace{-11pt}
+\begin{spacing}{0.9}
 \begin{tabular}{ll}
 \hline
 CPU& 2-socket Intel Xeon CPU E5-2670 v3 \\ %\phantom{LA}  @2.30GHz   
@@ -38,6 +40,7 @@ Slow Memory& BW: 19 GB/s  \phantom{L}  Latency: 123 ns\\
 Cross-socket BW & 19 GB/s\\ 
 \hline
 \end{tabular}
+\end{spacing}
 \vspace{-5pt}
 %\vspace{-25pt}
 \label{tab:hardware}
@@ -126,6 +129,7 @@ MobileNet &  \centering{CIFAR-10}&          \centering{64} &\centering{1} &   \c
 \label{tab:models}
 \end{table}
 %%%%%%%%%%%%%%%%%%%%%%%%%
+\vspace{-3pt}
 \subsection{Results}
 \label{sec:eval_results}
 \textbf{Overall performance.}
@@ -136,12 +140,12 @@ Figure~\ref{fig:general_perf} shows performance of \name and IAL. Performance di
 \begin{figure}
     \centering
     \includegraphics[width=0.48\textwidth]{figures/sentinel_performance.pdf}
-\vspace{-20pt}    
+\vspace{-25pt}    
 \caption{
 \textcolor{check}{
 Performance with \name, IAL and two configurations. %``RN'' and ``MN'' stand for ``ResNet-32'' and ``MobileNet'' respectively.
 }
-\vspace{-5pt}
+\vspace{-15pt}
 \label{fig:general_perf}}
 \end{figure}
 
@@ -178,6 +182,7 @@ Sentinel & 2097152	& 4898697	& 444846 &	353500  & 249290 \\ \hline
 %\begin{comment}
 \begin{table}[]
 \small
+\vspace{-5pt}
 \caption{Number of page migrations in one epoch. %``RN'' and ``MN'' stand for ``ResNet-32'' and ``MobileNet'' respectively.
 }
 \vspace{-5pt}
@@ -187,16 +192,16 @@ Sentinel & 2097152	& 4898697	& 444846 &	353500  & 249290 \\ \hline
 \textbf{IAL}  & 807308	& 732540 &	211684	&194933  & 144882 \\ \hline
 \textbf{Sentinel} & 2097152	& 1032450	& 444846 &	353500  & 249290 \\ \hline
 \end{tabular}
-\vspace{-5pt}
+\vspace{-10pt}
 \label{tab:migration}
 \end{table}
 %\end{comment}
 \begin{figure}
 \centering
 \includegraphics[width=0.48\textwidth]{figures/bandwidth.pdf}
-\vspace{-20pt}
+\vspace{-25pt}
 \caption{\textcolor{check}{Memory access bandwidth during training of ResNet-32}.}
-\vspace{-5pt}
+\vspace{-10pt}
 \label{fig:bandwidth_consumption}
 \end{figure}
 
@@ -207,8 +212,10 @@ Table~\ref{tab:models} shows the total number of training steps used for profili
 %\textcolor{jie}{\textbf{Overhead of \name. }}
 %\textcolor{jie}{We discuss the overhead of \name in terms of execution time and memory consumption. The last column in table~\ref{tab:models} shows the total number of training steps used for profiling, determining migration interval and test-and-trail. Comparing with hundreds of thousands of training steps for DNN to converge, \name only uses 5.6 training steps on average to decide an optimal solution for data management. The runtime overhead bring by \name is negligible.}
 
+%\begin{spacing}{0.9}
 \textcolor{check}{\textbf{Memory overhead.}
 Using our method for data object-level profiling increases peak memory consumption, causing memory overhead. Table~\ref{tab:mem_sentinel} shows peak memory consumption before and after using \name. \name does not increase peak memory consumption much (by 2.1\% at most). This is because data objects larger than one page dominate total memory consumption. Profiling those data objects with \name does not cause memory overhead.}
+%\end{spacing}
 
 %Although our profiling method %does not put more than one data objects into the same page for high profiling accuracy, %increases memory consumption, it does not increase much (by 2.1\% at most). This is because data objects larger than 4KB dominate total memory consumption. During the profiling, we do not significantly increase their memory consumption. 
 
@@ -242,21 +249,24 @@ Peak memory consumption with and without \name.}}
 w/o Sentinel  & 6144MB	& 32760MB &	3072MB	&2048MB  & 4096MB \\ \hline
 w/ Sentinel & 6176MB	& 34938MB	& 3136MB &	2080MB  & 4228MB\\ \hline
 \end{tabular}
-\vspace{-5pt}
+\vspace{-15pt}
 \label{tab:mem_sentinel}
 \end{table}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}[htb!]
+\vspace{-7pt}
 	\centering
 	%\includegraphics[width=0.48\textwidth]{figures/figure11.pdf}
 	\includegraphics[width=0.48\textwidth]{figures/diff_strategy.pdf}
 	\vspace{-20pt}
-\caption{\textcolor{check}{
-Performance with different strategies for data management in \name. Performance is normalized by that of the full-featured \name.}}
-\vspace{-5pt}
+\caption{
+\small Performance with different strategies for data management in \name. Performance is normalized by that of the full-featured \name.}
+\vspace{-10pt}
 \label{fig:fast_memory}
 \end{figure}
 
+
+%\begin{spacing}{0.9}
 \textbf{Performance breakdown.}
 %%\textcolor{red}{Figure: Multiple strategies, %showing memory pre-allocation, Sentinel without handling false sharing, no preservation space for short-lived variables, test and trail}
 %\textcolor{green}{four bars groups together, 5 groups in one figure.} %\textcolor{red}{Figure: show how often the three cases happen at the end of each migration interval.}
@@ -267,17 +277,18 @@ reserving fast memory space for short-lived data objects is the most effective o
 %17\% - 23\%
 performance loss without it (compared with the full-featured \name). Furthermore, because of the pervasiveness of page-level false sharing, handling false sharing improves performance by \textcolor{check}{8\% - 18\%}.
 
-
-
-\begin{figure}[htb!]
+\begin{figure}[tb!]
 	\centering
 	%\includegraphics[width=0.9\linewidth,height=0.45\linewidth]{ASPLOS2020_Jie/figures/f11_edit.pdf}
 	\includegraphics[width=0.48\textwidth]{figures/diff_size.pdf}
 	\vspace{-20pt}
-\caption{Performance with \name under various sizes of fast memory. The fast memory size is shown as the percentage of peak memory consumption of DNN models. Performance is normalized by that of the fast memory-only.}
-\vspace{-5pt}
+\caption{
+ Performance with \name under various sizes of fast memory. The fast memory size is shown as the percentage of peak memory consumption of DNN models. Performance is normalized by that of the fast memory-only.
+}
+\vspace{-10pt}
 \label{fig:fast_memory_sen}
 \end{figure}
+
 
 \textbf{Sensitivity study.}
 %\textcolor{red}{Figure: sensitivity study: show the effects of fast memory capacity.}
@@ -301,12 +312,15 @@ This brings over 75\% saving in fast memory size.}
 Figure~\ref{fig:fast_memory_sen} shows that using 60\% of peak memory consumption as fast memory size, there is no performance loss, which comes with 40\% saving in fast memory size.
 
 
-\begin{figure}
+%\end{spacing}
+
+
+\begin{figure}[!t]
 \centering
 \includegraphics[width=0.48\textwidth]{figures/resnet_diff_input.pdf}
 \vspace{-20pt}
 \caption{Comparison between peak memory consumption of DNN models and fast memory size for ResNet variants.}
-\vspace{-5pt}
+\vspace{-10pt}
 \label{fig:mem_consumption}
 \end{figure}
 
@@ -314,10 +328,10 @@ Figure~\ref{fig:fast_memory_sen} shows that using 60\% of peak memory consumptio
 %\textcolor{green}{two bars in one group. five groups in one figure.}
 
 To further study \name's effectiveness, we use ResNets with various topology and different peak memory consumption. We report the minimum fast memory size with which \name performs the same as the fast memory-only. %\textit{does not have performance loss} with \name, %compared to the fast memory-only cases.
-Figure~\ref{fig:mem_consumption} shows peak memory consumption and fast memory size for all ResNet variants. The figure shows that although peak memory consumption increases quickly as ResNet becomes more complicated, the fast memory size increases in a much slower rate, \textcolor{dong}{because of adaptive layer-baesd migration.}  
+Figure~\ref{fig:mem_consumption} shows peak memory consumption and fast memory size for all ResNet variants. The figure shows that although peak memory consumption increases quickly as ResNet becomes more complicated, the fast memory size increases in a much slower rate because of adaptive layer-baesd migration.  
 %\textcolor{jie}{because \name does not require long-lived data objects reside in fast memory and most of the memory is consumed by long-lived data objects}. 
 This demonstrates the effectiveness of using \name to save fast memory size.
-
+\vspace{-10pt}
 
 \begin{comment}
 \begin{figure}

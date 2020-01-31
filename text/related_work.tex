@@ -1,15 +1,24 @@
 \section{Related Work}
-\textbf{Heterogeneous Main Memory.}
-%\textcolor{red}{review the existing heterogeneous memory (see the Nimble paper)}
-%In today's data centers, vendors use hybrid memory systems rather than single-tier DRAM-based memory systems~\cite{}. 
-Many memory technologies~\cite{6509675,3DXPoint_intel,Optane:intelweb,ieeemicro10:lee} have been proposed to build HM. Intel Optane DC persistent memory plus traditional DDR is an example~\cite{8641463,optane:ucsd}; High bandwidth memory (HBM) plus DDR in Intel Knights Landing is another example~\cite{6509675}. Recent research studies data management on HM using hardware-based approaches~\cite{asplos15:agarwal,hetero_mem_arch,qureshi_micro09, ibm_isca09,gpu_pcm_pact13,hpdc16:wu,row_buffer_pcm_iccd12, Ramos:ics11} or OS/software-based approaches~\cite{eurosys16:dulloor,nas16:giardino,asplos16:lin,Narayan:IPDPS2018,Peng:ISMM17,ismm16:shen,sc18:wu,wen:ICS18,unimem:sc17,Yan:ASPLOS19,Yu:ics17}. The common goal of these studies is to achieve a high service rate by leveraging fast memory as much as possible. We discuss software-based solutions as follows.
+
+%\textbf{Heterogeneous Main Memory.}
+%Many memory technologies~\cite{6509675,3DXPoint_intel,Optane:intelweb,ieeemicro10:lee} have been proposed to build HM. Intel Optane DC persistent memory plus traditional DDR is an example~\cite{8641463,optane:ucsd}; High bandwidth memory (HBM) plus DDR in Intel Knights Landing is another example~\cite{6509675}. Recent research studies data management on HM using hardware-based approaches~\cite{asplos15:agarwal,hetero_mem_arch,qureshi_micro09, ibm_isca09,gpu_pcm_pact13,hpdc16:wu,row_buffer_pcm_iccd12, Ramos:ics11} or OS/software-based approaches~\cite{eurosys16:dulloor,nas16:giardino,asplos16:lin,Narayan:IPDPS2018,Peng:ISMM17,ismm16:shen,sc18:wu,wen:ICS18,unimem:sc17,Yan:ASPLOS19,Yu:ics17}. The common goal of these studies is to achieve a high service rate by leveraging fast memory as much as possible. We discuss software-based solutions as follows.
 %from fast memory for optimal performance.
 
 %%%%%%%%%%%%%%%%%new related work%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\textcolor{dong}{
-\textbf{Using Managed Runtime for Data Management. }%}
+%\begin{spacing}{0.95}
+\textbf{Using Managed Runtime for Data Management on HM. }
 Existing efforts~\cite{pldi19:panthera, pldi18:KG,ASPLOS18:Espresso,sigmetrics19:crystalgazer} leverage managed runtime such as JVM for data management on HM. There are four major differences between these efforts and \name. (1) The existing efforts couple data migration with garbage collection, and hence miss opportunities to minimize data migration overhead; (2) The existing efforts do not proactively migrate data objects to save fast memory space; (3) The existing efforts leave less frequently accessed data objects in slow memory, instead of trying best efforts to migrate data objects to fast memory for best performance as in \name, %hence causing performance loss; 
-which may cause performance loss; (4) Leveraging managed runtime to profile memory accesses as in~\cite{pldi19:panthera, pldi18:KG} can be costly  \textcolor{dong}{because of the ignorance of application semantics}.
+which may cause performance loss; (4) Leveraging managed runtime to profile memory accesses as in~\cite{pldi19:panthera, pldi18:KG} can be costly because of the ignorance of application semantics.
+
+
+\textbf{Page-based Runtime Data Management on HM.}
+Existing proposals~\cite{Thermostat:asplos17,RAMinate:socc16,heteros:isca17,unimem:sc17,sc18:wu,Yan:ASPLOS19} explore various page placement polices. They commonly profile memory access to determine page placement. Some work~\cite{Thermostat:asplos17,RAMinate:socc16,heteros:isca17} tracks page accesses by setting and resetting PTE as \name does, but this tracking mechanism can result in very high runtime overhead. To reduce runtime overhead, the existing work commonly limits the amount of pages to profile, which can compromise profiling accuracy. Unlike the above work, \name leverages DNN domain knowledge, and hence only profiles a small portion of total execution (one training step) without paying large runtime overhead and losing accuracy. Also, \name associates page-level profiling results with data objects, making profiling results more meaningful for data migration.
+
+Yan et al.~\cite{Yan:ASPLOS19} guides page placement based on an existing Linux page replacement policy. However, using this design to decide page migration for common short-lived data objects in DNN can be slow and lacks a global view, which wastes valuable fast memory space and causes unnecessary data movement. The existing efforts~\cite{Yan:ASPLOS19, 7446088, Seshadri:2013:RFE:2540708.2540725} also focuses on the page migration mechanism. \name focuses on page migration policy (not mechanism), but these efforts are useful to improve performance of \name.
+
+\textbf{Performance Optimization for Dataflow-based Machine Learning Frameworks.} Performance optimization for such frameworks attracted a lot of research efforts~\cite{222575,pmlr-v80-gao18a,222629,liu:micro18,ipdps19_liu,234946,google:device_placement,google:device_placement_re,222605,DBLP:conf/asplos/SivathanuCSZ19,DBLP:journals/corr/abs-1802-04730,Wang:2018:SDG:3178487.3178491,222611}.  Some~\cite{7472805,Jin:2018:LMR:3274266.3243904,liu:micro18, ipdps19_liu, DBLP:conf/asplos/SivathanuCSZ19,222611} leverage the predictability of DNN workloads to guide operation scheduling and compiler-based performance optimization. Our work also leverages the unique characteristics of DNN, but focuses on data management on HM. 
+%\end{spacing}
+
 
 \begin{comment}
 \textcolor{jie}{\textbf{Data Management for Managed Runtime.}
@@ -26,14 +35,6 @@ Second, the existing works on data management based on JVM migrate data objects 
 \end{comment}
 
 
-
-
-\textbf{Page-based Runtime Data Management.}
-Existing proposals~\cite{Thermostat:asplos17,RAMinate:socc16,heteros:isca17,unimem:sc17,sc18:wu,Yan:ASPLOS19} explore various page placement polices. They commonly profile memory access to determine page placement. Some work~\cite{Thermostat:asplos17,RAMinate:socc16,heteros:isca17} tracks page accesses by setting and resetting PTE as \name does, but this tracking mechanism can result in very high runtime overhead. To reduce runtime overhead, the existing work commonly limits the amount of pages to profile, which can compromise profiling accuracy. Unlike the above work, \name leverages DNN domain knowledge, and hence only profiles a small portion of total execution (one training step) without paying large runtime overhead and losing accuracy. Also, \name associates page-level profiling results with data objects, making profiling results more meaningful for data migration.
-
-
-%\textcolor{dong}{
-Yan et al.~\cite{Yan:ASPLOS19} guides page placement based on an existing Linux page replacement policy. However, using this design to decide page migration for common short-lived data objects in DNN can be slow and lacks a global view, which wastes valuable fast memory space and causes unnecessary data movement. The existing efforts~\cite{Yan:ASPLOS19, 7446088, Seshadri:2013:RFE:2540708.2540725} also focuses on the page migration mechanism. \name focuses on page migration policy (not mechanism), but these efforts are useful to improve performance of \name.%}
 
 
 \begin{comment}
@@ -67,10 +68,6 @@ In terms of page migration mechanism, Yan et al.~\cite{Yan:ASPLOS19} uses multi-
 \end{comment}
 %%%%%%%%%%%%%%%%%%%%
 
-
-\textbf{Performance Optimization for Dataflow-based Machine Learning Frameworks.}
-Performance optimization for such frameworks attracted a lot of research efforts recently~\cite{222575,pmlr-v80-gao18a,222629,liu:micro18,ipdps19_liu,234946,google:device_placement,google:device_placement_re,222605,DBLP:conf/asplos/SivathanuCSZ19,DBLP:journals/corr/abs-1802-04730,Wang:2018:SDG:3178487.3178491,222611}. 
-Some of them~\cite{7472805,Jin:2018:LMR:3274266.3243904,liu:micro18, ipdps19_liu, DBLP:conf/asplos/SivathanuCSZ19,222611} leverage the predictability of DNN workloads to guide operation scheduling and compiler-based performance optimization. Our work also leverages the unique characteristics of DNN, but focuses on data management on HM. 
 
 %Performance optimization for such frameworks attracted a lot of research efforts recently\cite{pmlr-v80-gao18a,liu:micro18,DBLP:journals/corr/abs-1810-08955,google:device_placement,google:device_placement_re, DBLP:conf/asplos/SivathanuCSZ19} studies the performance optimization of a dataflow-based framework. Liu et al.~\cite{liu:micro18} proposes a software/hardware co-design for heterogeneous processing-in-memory systems, which schedules NN training operations on various heterogeneous hardware resources to optimize system energy efficiency. Mirhoseini et al.~\cite{google:device_placement,google:device_placement_re} clusters operations into groups and schedule each group of operations onto different devices. Liu et al.~\cite{DBLP:journals/corr/abs-1810-08955} explores concurrency control that co-runs operations of NN training on many-core platforms to improve hardware utilization.
 
