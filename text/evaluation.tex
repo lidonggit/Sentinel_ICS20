@@ -16,20 +16,20 @@ Table~\ref{tab:models} shows model details. For %ResNet\_v2-152, LSTM, and %Wide
 LSTM and MobileNet models in our evaluation, we use the implementations from TensorFlow~\cite{tf_models}; For ResNet, BERT and DCGAN, we use~\cite{resnet_32}, ~\cite{bert_github} and~\cite{dcgan} respectively. 
 We train BERT with five datasets from GLUE~\cite{wang-etal-2018-glue}  shown in Table~\ref{tab:glue_bench}. \textcolor{check}{We present average results of the five datasets in this section to save space}. To use TensorFlow, the intra-op parallelism (i.e., the number of threads to run an operation) and inter-op parallelism (i.e., the maximum number of operations to co-run) are set as 24, which is the number of physical cores in a socket in our platform. 
 
+
 We compare \name with a state-of-the-art page migration system from Yan et al.~\cite{Yan:ASPLOS19}. They introduce a page migration algorithm by improving an existing page replacement mechanism in the Linux kernel (i.e., an FIFO-based active list~\cite{Yan:ASPLOS19}, named \textit{improved active list} (IAL) in the following discussion). In~\cite{Yan:ASPLOS19}, they improve the performance of the page migration mechanism by using four threads for parallel page copying and eight threads for concurrent page migration, and they optimize page locations every five seconds. \textcolor{check}{We use the same configuration for IAL in our evaluation}. \name does not use the page migration mechanism in~\cite{Yan:ASPLOS19}. Unless otherwise indicated, \textcolor{check}{the size of fast memory in our evaluation is equal to 25\% of peak memory consumption in DNN models.}
 %\end{spacing}
 
 %\textcolor{green}{We compare \name with the state-of-the-art multi-level page migration system from Yan et al.~\cite{Yan:ASPLOS19}. Yan proposes a page migration algorithm builds on existing Linux kernel page replacement algorithm. We mention Yan's page migration algorithm as \baseline. \name migrates pages according to page's state, page table entry’s access bit and page metadata access bit maintained by kernel. We set \baseline using 4-thread parallel and 8 page concurrent migration, and set \baseline optimizing page locations every 5 seconds. The configuration is based on \baseline optimal solution according to ~\cite{Yan:ASPLOS19}. }
-
+\begin{spacing}{0.9}
 \begin{table}[tbp]
 \centering
 %\scriptsize
 \small
-\vspace{-5pt}
+\vspace{-10pt}
 %\caption{\textcolor{dong}{Hardware used in evaluation.}}
 \caption{Hardware overview of experimental system.}
 \vspace{-5pt}
-\begin{spacing}{0.9}
 \begin{tabular}{ll}
 \hline
 CPU& 2-socket Intel Xeon CPU E5-2670 v3 \\ %\phantom{LA}  @2.30GHz   
@@ -40,7 +40,7 @@ Slow Memory& BW: 19 GB/s  \phantom{L}  Latency: 123 ns\\
 Cross-socket BW & 19 GB/s\\ 
 \hline
 \end{tabular}
-\end{spacing}
+
 \vspace{-5pt}
 %\vspace{-25pt}
 \label{tab:hardware}
@@ -119,7 +119,7 @@ DNN for evaluation. ``MI'' stands for ``migration interval''}}
 \hline
          \multirow{2}{*}{} & \centering\multirow{2}{*}{data set} & \centering\multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}batch \\ size\end{tabular}} & \multicolumn{3}{c}{\# of training steps used by \name} \\  \cline{4-6} 
           &                           & & \scriptsize{profiling} & \scriptsize{determining MI}  & \scriptsize{\phantom{L}test\&trial} \\ \hline
-ResNet    &  \centering{CIFAR-10}&\centering{128}&\centering{1}&\centering{5}& \phantom{LA}2\\\hline
+ResNet    &  \centering{CIFAR-10}&\centering{128}&\centering{1}&\centering{5}& \phantom{LA}3\\\hline
 BERT  &   \centering{GLUE}  & \centering{32}&\centering1 &   \centering7           &  \phantom{LA}3 \\ \hline
 LSTM      &  \centering{PTB}    & \centering{20}  &\centering{1} & \centering1   &  \phantom{LA}0           \\ \hline
 DCGAN &  \centering{MNIST} &  \centering{64} &\centering{1}&   \centering2 &  \phantom{LA}1        \\ \hline
@@ -128,9 +128,11 @@ MobileNet &  \centering{CIFAR-10}&          \centering{64} &\centering{1} &   \c
 \vspace{-5pt}
 \label{tab:models}
 \end{table}
+\end{spacing}
 %%%%%%%%%%%%%%%%%%%%%%%%%
 \vspace{-3pt}
 \subsection{Results}
+
 \label{sec:eval_results}
 \textbf{Overall performance.}
 Figure~\ref{fig:general_perf} shows performance of \name and IAL. Performance difference between \name and the fast memory-only system is very small  (\textcolor{check}{no difference in DCGAN, 3.3\% difference on average and at most 7\% difference in other models}), while IAL has \textcolor{check}{17\% performance difference on average (up to 33\%). \name %is significantly better than 
@@ -150,7 +152,7 @@ Performance with \name, IAL and two configurations. %``RN'' and ``MN'' stand for
 \end{figure}
 
 %\textcolor{red}{Figure: total number of migrations per model for Sentinel and Nimble.} \textcolor{green}{two bar each subfigure} 
-Table~\ref{tab:migration} reports the number of migrations in \name and IAL. Compared with IAL, \name has more migrations \textcolor{check}{(91\% more on average)}. Frequent migrations allow \name to make best use of fast memory for performance. \textcolor{check}{Those migrations are  overlapped with the training process to minimize migration overhead.}
+Table~\ref{tab:migration} reports the number of migrations in \name and IAL. Compared with IAL, \name has more migrations \textcolor{check}{(91\% more on average)}. Frequent migrations allow \name to make best use of fast memory for performance.  \textcolor{check}{Those migrations are  overlapped with the training process to minimize migration overhead.}
 %Also, those migrations are successfully overlapped with DNN training to avoid performance loss. 
 
 
@@ -181,33 +183,36 @@ Sentinel & 2097152	& 4898697	& 444846 &	353500  & 249290 \\ \hline
 
 %\begin{comment}
 \begin{table}[]
+\begin{spacing}{0.9}
 \small
-\vspace{-5pt}
+\vspace{-10pt}
 \caption{Number of page migrations in one epoch. %``RN'' and ``MN'' stand for ``ResNet-32'' and ``MobileNet'' respectively.
 }
-\vspace{-5pt}
+\vspace{-6pt}
 \begin{tabular}{|p{1.05cm}|p{1cm}|p{0.9cm}|p{1cm}|p{0.9cm}|p{1.1cm}|}
 \hline
    & ResNet & BERT & DCGAN & LSTM & MobileNet \\ \hline
 \textbf{IAL}  & 807308	& 732540 &	211684	&194933  & 144882 \\ \hline
 \textbf{Sentinel} & 2097152	& 1032450	& 444846 &	353500  & 249290 \\ \hline
 \end{tabular}
-\vspace{-10pt}
+\vspace{-2pt}
 \label{tab:migration}
+\end{spacing}
 \end{table}
 %\end{comment}
 \begin{figure}
+%%%\vspace{-10pt}
 \centering
-\includegraphics[width=0.48\textwidth]{figures/bandwidth.pdf}
+\includegraphics[width=0.48\textwidth,height=0.65\linewidth]{figures/bandwidth.pdf}
 \vspace{-25pt}
 \caption{\textcolor{check}{Memory access bandwidth during training of ResNet-32}.}
-\vspace{-10pt}
+\vspace{-6pt}
 \label{fig:bandwidth_consumption}
 \end{figure}
 
-
+\begin{spacing}{0.95}
 \textcolor{check}{\textbf{Runtime overhead.}% The last column in 
-Table~\ref{tab:models} shows the total number of training steps used for profiling, determining migration interval,  and test-and-trail. Those steps have longer execution time than regular training steps, hence introducing runtime overhead. On average, \name uses only 5.6 training steps. Each of those training steps is extended by up to \textcolor{check}{5x} in terms of execution time. However, such overhead is easily amortized by millions of training steps. As a result, the runtime overhead of \name is negligible (less than 1\%).}
+Table~\ref{tab:models} shows the total number of training steps used for profiling, determining migration interval,  and test-and-trail. Those steps have longer execution time than regular training steps, hence introducing runtime overhead. On average, \name uses only 5.8 training steps. Each of those training steps is extended by up to \textcolor{check}{5x} in terms of execution time. However, such overhead is easily amortized by millions of training steps. As a result, the runtime overhead of \name is negligible (less than 1\%).}
 
 %\textcolor{jie}{\textbf{Overhead of \name. }}
 %\textcolor{jie}{We discuss the overhead of \name in terms of execution time and memory consumption. The last column in table~\ref{tab:models} shows the total number of training steps used for profiling, determining migration interval and test-and-trail. Comparing with hundreds of thousands of training steps for DNN to converge, \name only uses 5.6 training steps on average to decide an optimal solution for data management. The runtime overhead bring by \name is negligible.}
@@ -215,7 +220,7 @@ Table~\ref{tab:models} shows the total number of training steps used for profili
 %\begin{spacing}{0.9}
 \textcolor{check}{\textbf{Memory overhead.}
 Using our method for data object-level profiling increases peak memory consumption, causing memory overhead. Table~\ref{tab:mem_sentinel} shows peak memory consumption before and after using \name. \name does not increase peak memory consumption much (by 2.1\% at most). This is because data objects larger than one page dominate total memory consumption. Profiling those data objects with \name does not cause memory overhead.}
-%\end{spacing}
+\end{spacing}
 
 %Although our profiling method %does not put more than one data objects into the same page for high profiling accuracy, %increases memory consumption, it does not increase much (by 2.1\% at most). This is because data objects larger than 4KB dominate total memory consumption. During the profiling, we do not significantly increase their memory consumption. 
 
@@ -241,7 +246,7 @@ MobileNet       & 4096 MB       &  4228 MB          \\ \hline
 \begin{table}[]
 \caption{\textcolor{check}{
 Peak memory consumption with and without \name.}}
-\vspace{-5pt}
+\vspace{-6pt}
 \small
 \begin{tabular}{|p{1.4cm}|p{0.9cm}|p{1cm}|p{1cm}|p{0.9cm}|p{1.1cm}|}
 \hline
@@ -254,10 +259,10 @@ w/ Sentinel & 6176MB	& 34938MB	& 3136MB &	2080MB  & 4228MB\\ \hline
 \end{table}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}[htb!]
-\vspace{-7pt}
+\vspace{-10pt}
 	\centering
 	%\includegraphics[width=0.48\textwidth]{figures/figure11.pdf}
-	\includegraphics[width=0.48\textwidth]{figures/diff_strategy.pdf}
+	\includegraphics[width=0.48\textwidth,height=0.38\linewidth]{figures/diff_strategy.pdf}
 	\vspace{-20pt}
 \caption{
 \small Performance with different strategies for data management in \name. Performance is normalized by that of the full-featured \name.}
@@ -266,11 +271,13 @@ w/ Sentinel & 6176MB	& 34938MB	& 3136MB &	2080MB  & 4228MB\\ \hline
 \end{figure}
 
 
-%\begin{spacing}{0.9}
+\begin{spacing}{0.95}
 \textbf{Performance breakdown.}
 %%\textcolor{red}{Figure: Multiple strategies, %showing memory pre-allocation, Sentinel without handling false sharing, no preservation space for short-lived variables, test and trail}
 %\textcolor{green}{four bars groups together, 5 groups in one figure.} %\textcolor{red}{Figure: show how often the three cases happen at the end of each migration interval.}
-We apply different strategies for data management, in order to study the impact of various techniques. Figure~\ref{fig:fast_memory} shows the results. In the figure, we show four strategies: \name without handling page-level false sharing (labeled ``Having false sharing''), \name without reserving fast memory space for short-lived data objects (labeled ``No space reservation''), \name without test-and-trial (labeled ``No t\&t''), and \name with all techniques.
+We apply different strategies for data management to study the impact of various techniques. Figure~\ref{fig:fast_memory} shows %the results. In the figure, we show 
+four data management strategies: \name without handling page-level false sharing (labeled ``Having false sharing''), \name without reserving fast memory space for short-lived data objects (labeled ``No space reservation''), \name without test-and-trial (labeled ``No t\&t''), and \name with all techniques.
+\end{spacing}
 
 The figure reveals that among the three (handling page-level false sharing, reserving fast memory, and test-and-trial), 
 reserving fast memory space for short-lived data objects is the most effective one. We easily have \textcolor{check}{15\% - 20\%} 
@@ -280,7 +287,7 @@ performance loss without it (compared with the full-featured \name). Furthermore
 \begin{figure}[tb!]
 	\centering
 	%\includegraphics[width=0.9\linewidth,height=0.45\linewidth]{ASPLOS2020_Jie/figures/f11_edit.pdf}
-	\includegraphics[width=0.48\textwidth]{figures/diff_size.pdf}
+	\includegraphics[width=0.48\textwidth,height=0.38\linewidth]{figures/diff_size.pdf}
 	\vspace{-20pt}
 \caption{
  Performance with \name under various sizes of fast memory. The fast memory size is shown as the percentage of peak memory consumption of DNN models. Performance is normalized by that of the fast memory-only.
@@ -317,10 +324,10 @@ Figure~\ref{fig:fast_memory_sen} shows that using 60\% of peak memory consumptio
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.48\textwidth]{figures/resnet_diff_input.pdf}
+\includegraphics[width=0.48\textwidth,height=0.38\linewidth]{figures/resnet_diff_input.pdf}
 \vspace{-20pt}
 \caption{Comparison between peak memory consumption of DNN models and fast memory size for ResNet variants.}
-\vspace{-10pt}
+\vspace{-15pt}
 \label{fig:mem_consumption}
 \end{figure}
 
@@ -331,6 +338,7 @@ To further study \name's effectiveness, we use ResNets with various topology and
 Figure~\ref{fig:mem_consumption} shows peak memory consumption and fast memory size for all ResNet variants. The figure shows that although peak memory consumption increases quickly as ResNet becomes more complicated, the fast memory size increases in a much slower rate because of adaptive layer-baesd migration.  
 %\textcolor{jie}{because \name does not require long-lived data objects reside in fast memory and most of the memory is consumed by long-lived data objects}. 
 This demonstrates the effectiveness of using \name to save fast memory size.
+%\end{spacing}
 \vspace{-10pt}
 
 \begin{comment}

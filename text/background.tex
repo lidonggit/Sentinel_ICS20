@@ -1,4 +1,4 @@
-%\vspace{-5pt}
+\vspace{-5pt}
 \section{Background}
 \label{sec:bg}
 
@@ -47,7 +47,7 @@ Our work shares the same optimization targets as the existing efforts as follows
 \begin{itemize}[leftmargin=*]
     \item Memory profiling must have ignorable impact on application performance while being accurate;
     \item The decision-making process must timely capture those hot data for migration without violating fast memory capacity;
-    \item The data migration cannot impact  performance. %and/or not exposed to the critical path.  
+    \item The data migration cannot impact performance. %and/or not exposed to the critical path.  
 \end{itemize}
 %\squishend
 
@@ -60,7 +60,7 @@ The existing efforts explore hardware techniques for profiling and facilitate da
 We study a fundamentally new method for data management on HM. %ignore application knowledge which can be used to achieve the optimization targets with less performance overhead. 
 %%Inspired by the trend of using domain specific knowledge for hardware (e.g., AI accelerators~\cite{7738524, Jouppi:2017:IPA:3079856.3080246, 8192478, Shafiee:2016:ICN:3001136.3001139} and Anton for molecular dynamics simulation~\cite{Shaw:2008:ASM:1364782.1364802}) and software (e.g., domain specific language Halide~\cite{halide} and Liszt~\cite{DeVito:2011:LDS:2063384.2063396}), 
 We %%%%%use very limited DNN domain knowledge 
-\textcolor{check}{leverage DNN topology information }to direct data placement. This method enables lightweight profiling, accurately capturing data hotness, timely triggering data migration, and effectively hiding data migration overhead. 
+\textcolor{check}{leverage DNN topology information }to direct data placement. This method enables lightweight profiling, accurate capture of data hotness, timely triggering data migration, and effectively hiding data migration overhead. 
 %avoids repeated profiling (hence reducing profiling overhead), accurately captures data hotness, and effectively hide the data migration overhead. 
 %``To ensure optimal performance, application developers will rely on both initial page placement policies and follow-up page migration policies to ensure that hot data pages remain within the highest bandwidth or lowest latency memory node during an application’s runtime''
 

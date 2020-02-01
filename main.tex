@@ -24,7 +24,7 @@
 \startPage{1}
 
 %% Bibliography style
-\bibliographystyle{ACM-Reference-Format}
+%\bibliographystyle{ACM-Reference-Format}
 
 %% Some recommended packages.
 \usepackage{booktabs}   %% For formal tables:
@@ -73,7 +73,7 @@
     \end{list}  }
 
 \definecolor{dong}{RGB}{0,0,255}  
-\definecolor{dong2}{RGB}{0,0,64}
+\definecolor{dong2}{RGB}{0,0,0}
 \definecolor{jie}{rgb}{0.0, 0.5, 0.0}
 \definecolor{check}{RGB}{0,0,0}
 %-------------------------------------------------------------------------------
@@ -103,7 +103,8 @@
 %-------------------------------------------------------------------------------
 
 \textcolor{check}{
-When training complex DNNs, memory usage can be a major bottleneck that causes a range of functional and performance issues.  In practice, memory capacity plays a critical role to determine whether a DNN model is trainable and how efficiently we can train it. Recent advance of heterogeneous memory (HM) provides a promising direction to increase memory capacity. However, not only HM imposes challenges on data management (including memory allocation and migration) by itself, but it is also unclear how HM affects performance in the context of DNN training. \textcolor{jie}{Last but not least,} DNN training possesses unique characteristics of memory access patterns, which places challenges on performance profiling accuracy and the promptness of data migration, both of which are crucial for getting the best performance on HM.}  We present \name, a runtime system that automatically optimizes data management on HM to achieve performance similar to that on the fast memory-only system but with a much smaller capacity of fast memory.  \textcolor{check}{Compared with prior work, which treats DNN training as a black-box, we show that by passing just a little model topology information to the runtime, \name is able to proactively manage data objects on HM in a much more efficient way.}  \textcolor{check}{\name achieves high profiling accuracy with very low overhead, by leveraging the fact that DNN workload has a low variance of memory patterns across iterations.}  By coordinating operating system (OS) and runtime-level profiling, \name bridges the semantic gap between OS and applications, and hence enables accurate profiling. By associating data objects with DNN topology, \name avoids unnecessary data movement and proactively triggers data movement. \name reduces memory consumption of fast memory by 75\% while retaining the same or comparable training performance (at most 7\% performance difference) to the fast memory-only system on a wide range of DNN models; \textcolor{jie}{\name also consistently outperforms the state-of-the-art HM management solution by 16\% in training throughput.}
+When training complex deep neural networks (DNN), memory usage can be a major bottleneck causing a range of functional and performance issues.  In practice, memory capacity plays a critical role to determine whether a DNN model is trainable and how efficiently we can train it. Recent advance of heterogeneous memory (HM) provides a promising direction to increase memory capacity. However, not only HM imposes challenges on data management (including memory allocation and migration) by HM itself, but it is also unclear how HM affects performance in the context of DNN training.   %\textcolor{jie}{Last but not least,}  
+DNN training possesses unique characteristics of memory access patterns, which places challenges on performance profiling accuracy and the promptness of data migration, both of which are crucial for getting the best performance on HM.}  We present \name, a runtime system that automatically optimizes data management on HM to achieve performance similar to that on the fast memory-only system but with a much smaller capacity of fast memory.  \textcolor{check}{Compared with prior work, which treats DNN training as a black-box, we show that by passing just a little model topology information to the runtime, \name is able to proactively manage data objects on HM in a much more efficient way.}  \textcolor{check}{\name achieves high profiling accuracy with very low overhead, by leveraging the fact that DNN workload has a low variance of memory patterns across iterations.}  By coordinating operating system (OS) and runtime-level profiling, \name bridges the semantic gap between OS and applications, and hence enables accurate profiling. By associating data objects with DNN topology, \name avoids unnecessary data movement and proactively triggers data movement. \name reduces memory consumption of fast memory by 75\% while retaining the same or comparable training performance (at most 7\% performance difference) to the fast memory-only system on a wide range of DNN models; \textcolor{check}{\name also consistently outperforms a state-of-the-art HM management solution by 16\% (on average) in training throughput.}
 \end{abstract}
 
 
@@ -158,16 +159,14 @@ Lack of memory causes a range of functional and performance issues for training 
 %The USENIX latex style is old and very tired, which is why there's no \textbackslash{}acks command for you to use when acknowledging. Sorry.
 
 %-------------------------------------------------------------------------------
-
-
 %-------------------------------------------------------------------------------
 \clearpage
-\bibliographystyle{plain}
-\bibliography{kai.bib,li.bib,jie.bib}
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{kai,li,jie}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%t%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \end{document}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%  LocalWords:  endnotes includegraphics fread ptr nobj noindent
-%%  LocalWords:  pdflatex acks
+%%  LocalWords:  pdflatex acksF
